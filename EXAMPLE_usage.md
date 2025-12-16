@@ -66,3 +66,4 @@ If quality is low:
 - **Homogeneous cohorts work best.** Mixing CTOs with junior devs dilutes patterns.
 - **Run twice and compare.** If rankings differ significantly, themes may need refinement.
 - **Long tail matters.** Single-mention items may be early signals worth noting.
+- **Consistent interviews = better analysis.** Use `INTERVIEW_script.md` to ensure all transcripts cover the same question arc (context → stack → problems → magic wand). This makes cross-transcript pattern detection more reliable.

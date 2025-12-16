@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to LLM-based coding agents when working with this repository.
 
 ## What This Repo Is
 
-A methodology toolkit for analyzing customer interview transcripts. When pointed at a folder of transcripts, Claude produces a deliverable answering: **What should we build next, and why?**
+A methodology toolkit for analyzing customer interview transcripts. When pointed at a folder of transcripts, the agent produces a deliverable answering: **What should we build next, and why?**
 
 ## Primary Workflow
 
@@ -12,7 +12,7 @@ A methodology toolkit for analyzing customer interview transcripts. When pointed
 User: Analyze the interviews in ./transcripts/
 ```
 
-Claude then:
+The agent then:
 1. Reads all transcripts
 2. Applies the methodology in `PROMPT_core.md`
 3. Produces output matching `TEMPLATE_output.md`
@@ -27,6 +27,7 @@ Claude then:
 | `TEMPLATE_output.md` | Expected output structure with format specs |
 | `RUBRIC_scoring.md` | 7-dimension quality rubric with scoring criteria |
 | `EXAMPLE_usage.md` | User guide for transcript prep and invocation |
+| `INTERVIEW_script.md` | 20-minute interview script optimized for later meta-analysis |
 
 ## Methodology Principles
 
