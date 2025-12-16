@@ -70,3 +70,7 @@ A good analysis lets someone:
 - Verify any claim by checking the cited source
 
 Use `RUBRIC_scoring.md` to score outputs (target: 32+/35).
+
+## License
+
+[MIT](LICENSE)
