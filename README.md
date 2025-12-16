@@ -1,6 +1,6 @@
 # Customer Interview Meta-Analysis Toolkit
 
-A methodology toolkit for extracting actionable product insights from customer interviews. Point Claude at a folder of transcripts and get a deliverable answering: **What should we build next, and why?**
+A methodology toolkit for extracting actionable product insights from customer interviews. Point an LLM agent at a folder of transcripts and get a deliverable answering: **What should we build next, and why?**
 
 ## What This Does
 
@@ -22,7 +22,7 @@ Explicitly avoids:
 Analyze the interviews in ./transcripts/ using the methodology in PROMPT_core.md
 ```
 
-Claude reads all transcripts, applies the methodology, and produces a report matching `TEMPLATE_output.md`.
+The agent reads all transcripts, applies the methodology, and produces a report matching `TEMPLATE_output.md`.
 
 ## Toolkit Contents
 
