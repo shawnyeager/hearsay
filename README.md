@@ -62,6 +62,25 @@ The agent reads all transcripts, applies the methodology, and produces a report 
 
 Consistent interviews yield better cross-transcript pattern detection.
 
+> **Note:** This script is optimized for B2B and developer-facing interviews. The "Stack" phase and technical probing will need adaptation for B2C or non-technical contexts.
+
+## Who to Interview
+
+Interview selection matters more than interview volume. Key principles:
+
+- **Interview your best customers** — those who intuitively see value, are profitable, and recommend you to peers. Not just anyone with a heartbeat.
+- **Pursue variation** — across engagement levels (power users, new users, churned), roles, company sizes, and use cases. Variation beats "representative samples" in qualitative research.
+- **Match selection to goals** — acquisition insights come from prospects; retention insights from current/churned customers.
+- **Recent switchers are gold** — people who just started or stopped using a solution remember their decision context vividly.
+- **Ask for referrals** — warm intros from interviewees have 80-90% success vs. 10% for cold outreach.
+
+Common mistakes:
+- Over-optimizing for the "perfect" sample (starting anywhere beats paralysis)
+- Interviewing whoever responds instead of deliberately recruiting
+- Mixing personas in the same analysis (CTOs and junior devs have different problems)
+
+See: [Teresa Torres on selecting customers](https://www.producttalk.org/2022/03/selecting-customers-for-customer-interviews/), [Customer Dev Labs B2B scripts](https://customerdevlabs.com/2014/07/09/b2b-customer-discovery-problem-interview-script/)
+
 ## Quality Bar
 
 A good analysis lets someone:
