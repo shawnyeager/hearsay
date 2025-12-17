@@ -1,6 +1,6 @@
-# Customer Interview Meta-Analysis Toolkit
+# Interview to Roadmap Kit
 
-A methodology toolkit for extracting actionable product insights from customer interviews. Point an LLM agent at a folder of transcripts and get a deliverable answering: **What should we build next, and why?**
+LLM prompts and methodology for turning customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
 
 ## What This Does
 

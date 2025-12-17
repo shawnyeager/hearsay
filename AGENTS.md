@@ -4,7 +4,7 @@ This file provides guidance to LLM-based coding agents when working with this re
 
 ## What This Repo Is
 
-A methodology toolkit for analyzing customer interview transcripts. When pointed at a folder of transcripts, the agent produces a deliverable answering: **What should we build next, and why?**
+LLM prompts and methodology for turning customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
 
 ## Primary Workflow
 
