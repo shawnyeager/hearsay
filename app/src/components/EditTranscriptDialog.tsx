@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui'
 import type { Transcript } from '@/types'
@@ -28,7 +29,6 @@ export function EditTranscriptDialog({
   const [content, setContent] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Reset form when transcript changes
   useEffect(() => {
     if (transcript) {
       setName(transcript.name)
@@ -51,16 +51,21 @@ export function EditTranscriptDialog({
     }
   }
 
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Transcript</DialogTitle>
+          <DialogDescription>
+            Update the transcript name or content
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 py-4">
+        <div className="flex-1 overflow-y-auto space-y-5 py-2">
           <div className="space-y-2">
-            <label htmlFor="edit-name" className="text-sm font-medium">
+            <label htmlFor="edit-name" className="text-sm font-medium text-surface-200">
               Name
             </label>
             <Input
@@ -72,7 +77,7 @@ export function EditTranscriptDialog({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="edit-content" className="text-sm font-medium">
+            <label htmlFor="edit-content" className="text-sm font-medium text-surface-200">
               Content
             </label>
             <Textarea
@@ -82,6 +87,9 @@ export function EditTranscriptDialog({
               placeholder="Interview transcript..."
               className="min-h-[300px] font-mono text-sm"
             />
+            <p className="text-xs text-surface-500">
+              {wordCount.toLocaleString()} words
+            </p>
           </div>
         </div>
 

@@ -1,13 +1,297 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  /* Typography - Editorial Precision */
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Surface palette - Deep, layered darks */
+  --color-surface-50: #faf9f7;
+  --color-surface-100: #f3f1ed;
+  --color-surface-200: #e8e4dd;
+  --color-surface-300: #d4cec3;
+  --color-surface-400: #a39e94;
+  --color-surface-500: #736e65;
+  --color-surface-600: #565249;
+  --color-surface-700: #3d3a33;
+  --color-surface-800: #26241f;
+  --color-surface-900: #1a1815;
+  --color-surface-950: #0d0c0a;
+
+  /* Accent - Amber/Gold for insight */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+
+  /* Semantic colors */
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+
+  /* Animation timing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Default to dark mode */
+  :root {
+    color-scheme: dark;
+  }
 }
 
 body {
-  @apply bg-white text-gray-900 antialiased;
-  @apply dark:bg-gray-950 dark:text-gray-100;
+  @apply bg-surface-950 text-surface-100 antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(245, 158, 11, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(245, 158, 11, 0.04), transparent);
+  min-height: 100vh;
+}
+
+/* Light mode override */
+.light body,
+body.light {
+  @apply bg-surface-50 text-surface-900;
+  background-image: none;
+}
+
+/* Better focus rings */
+*:focus-visible {
+  @apply outline-none ring-2 ring-accent-500/60 ring-offset-2 ring-offset-surface-950;
+}
+
+/* Custom selection */
+::selection {
+  @apply bg-accent-500/30 text-accent-100;
+}
+
+/* Smooth scrollbars - dark themed */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-700 rounded-full border-2 border-transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-surface-600;
+}
+
+::-webkit-scrollbar-corner {
+  @apply bg-transparent;
+}
+
+/* Typography utilities */
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Subtle noise texture overlay */
+.texture-noise {
+  position: relative;
+}
+
+.texture-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.015;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Glass effect for elevated surfaces */
+.glass {
+  @apply bg-surface-900/80 backdrop-blur-xl border border-surface-800/50;
+}
+
+.glass-subtle {
+  @apply bg-surface-900/60 backdrop-blur-md border border-surface-800/30;
+}
+
+/* Glow effects */
+.glow-accent {
+  box-shadow:
+    0 0 20px -5px rgba(245, 158, 11, 0.3),
+    0 0 40px -10px rgba(245, 158, 11, 0.2);
+}
+
+.glow-accent-subtle {
+  box-shadow: 0 0 30px -10px rgba(245, 158, 11, 0.15);
+}
+
+/* Card depth system */
+.card {
+  @apply bg-surface-900 border border-surface-800 rounded-xl;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-elevated {
+  @apply bg-surface-900 border border-surface-800/80 rounded-xl;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 10px 20px -5px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px -5px rgba(245, 158, 11, 0.5);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s var(--ease-out-expo);
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s var(--ease-out-expo);
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s var(--ease-out-expo);
+}
+
+.animate-scale-in {
+  animation: scale-in 0.4s var(--ease-out-expo);
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 158, 11, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger delay utilities */
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+
+/* Typing cursor animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.typing-cursor {
+  @apply inline-block w-0.5 h-5 bg-accent-500 ml-0.5;
+  animation: blink 1s step-end infinite;
+}
+
+/* Prose styling for analysis output */
+.prose-analysis {
+  @apply text-surface-200 leading-relaxed;
+}
+
+.prose-analysis h1,
+.prose-analysis h2,
+.prose-analysis h3 {
+  @apply font-display text-surface-100 font-semibold mt-6 mb-3;
+}
+
+.prose-analysis h1 { @apply text-xl; }
+.prose-analysis h2 { @apply text-lg; }
+.prose-analysis h3 { @apply text-base; }
+
+.prose-analysis p {
+  @apply mb-4;
+}
+
+.prose-analysis ul,
+.prose-analysis ol {
+  @apply mb-4 ml-4;
+}
+
+.prose-analysis li {
+  @apply mb-2;
+}
+
+.prose-analysis code {
+  @apply font-mono text-accent-400 bg-surface-800 px-1.5 py-0.5 rounded text-sm;
+}
+
+.prose-analysis blockquote {
+  @apply border-l-2 border-accent-600 pl-4 italic text-surface-300 my-4;
 }

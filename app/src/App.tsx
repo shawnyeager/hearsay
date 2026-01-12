@@ -1,74 +1,60 @@
 import { useState } from 'react'
-import { Settings, FlaskConical, BookOpen } from 'lucide-react'
 import { SettingsProvider } from '@/contexts/SettingsContext'
 import { TranscriptProvider } from '@/contexts/TranscriptContext'
 import { AnalysisProvider } from '@/contexts/AnalysisContext'
-import { TranscriptList } from '@/components/TranscriptList'
-import { AnalysisPanel } from '@/components/AnalysisPanel'
+import { Header } from '@/components/Header'
+import { Workspace } from '@/components/Workspace'
+import { HistoryPanel } from '@/components/HistoryPanel'
 import { SettingsPanel } from '@/components/SettingsPanel'
-import { GuidePanel } from '@/components/GuidePanel'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui'
+import type { Analysis } from '@/types'
 
 function AppContent() {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [activeTab, setActiveTab] = useState('analyze')
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [loadedAnalysis, setLoadedAnalysis] = useState<Analysis | null>(null)
+
+  const handleSelectHistoricalAnalysis = (analysis: Analysis) => {
+    setLoadedAnalysis(analysis)
+  }
+
+  const handleClearLoadedAnalysis = () => {
+    setLoadedAnalysis(null)
+  }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold">Interview Analysis</h1>
-            <p className="text-sm text-gray-500">
-              Turn customer interviews into product roadmap recommendations
-            </p>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col texture-noise">
+      <Header
+        onHistoryClick={() => setHistoryOpen(!historyOpen)}
+        onSettingsClick={() => setSettingsOpen(true)}
+        historyOpen={historyOpen}
+      />
 
-      {/* Main content */}
       <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar with transcripts */}
-        <aside className="w-80 border-r p-4 overflow-y-auto flex-shrink-0">
-          <TranscriptList
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-          />
-        </aside>
-
-        {/* Main panel with tabs */}
-        <div className="flex-1 p-6 overflow-hidden flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="mb-4 self-start">
-              <TabsTrigger value="analyze" className="gap-2">
-                <FlaskConical className="h-4 w-4" />
-                Analyze
-              </TabsTrigger>
-              <TabsTrigger value="guide" className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                Interview Guide
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="analyze" className="flex-1 overflow-hidden">
-              <AnalysisPanel selectedIds={selectedIds} />
-            </TabsContent>
-
-            <TabsContent value="guide" className="flex-1 overflow-y-auto">
-              <GuidePanel />
-            </TabsContent>
-
-            <TabsContent value="settings" className="flex-1 overflow-y-auto">
-              <SettingsPanel />
-            </TabsContent>
-          </Tabs>
-        </div>
+        <Workspace
+          loadedAnalysis={loadedAnalysis}
+          onClearLoaded={handleClearLoadedAnalysis}
+        />
       </main>
+
+      {/* History Panel */}
+      <HistoryPanel
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onSelect={handleSelectHistoricalAnalysis}
+      />
+
+      {/* Settings Modal */}
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <div className="pt-2">
+            <SettingsPanel />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

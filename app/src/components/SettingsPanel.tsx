@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff, ExternalLink } from 'lucide-react'
+import { Eye, EyeOff, ExternalLink, CheckCircle2, XCircle, Loader2, Shield, Zap } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import {
   Button,
@@ -26,162 +26,250 @@ export function SettingsPanel() {
   const providerIds = Object.keys(PROVIDER_DEFAULTS) as ProviderId[]
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Settings</h2>
-      </div>
-
-      {/* Provider Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">LLM Provider</label>
-        <Select
-          value={settings.selectedProvider}
-          onValueChange={(value) => setSelectedProvider(value as ProviderId)}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {providerIds.map((id) => (
-              <SelectItem key={id} value={id}>
-                {PROVIDER_DEFAULTS[id].name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-gray-500">
-          {settings.selectedProvider === 'openrouter' && (
-            <>
-              Access multiple models with one API key.{' '}
-              <a
-                href="https://openrouter.ai/keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline inline-flex items-center gap-0.5"
-              >
-                Get API key <ExternalLink className="h-3 w-3" />
-              </a>
-            </>
-          )}
-          {settings.selectedProvider === 'openai' && (
-            <>
-              Direct OpenAI API access.{' '}
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline inline-flex items-center gap-0.5"
-              >
-                Get API key <ExternalLink className="h-3 w-3" />
-              </a>
-            </>
-          )}
-          {settings.selectedProvider === 'maple' && (
-            <>
-              Privacy-focused AI via local proxy. Requires{' '}
-              <a
-                href="https://trymaple.ai/downloads"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline inline-flex items-center gap-0.5"
-              >
-                Maple app <ExternalLink className="h-3 w-3" />
-              </a>{' '}
-              running locally.
-            </>
-          )}
+    <div className="max-w-2xl animate-fade-in">
+      <div className="mb-8">
+        <h2 className="font-display text-2xl font-semibold text-surface-100 mb-1">
+          Settings
+        </h2>
+        <p className="text-sm text-surface-500">
+          Configure your LLM provider and API credentials
         </p>
       </div>
 
-      {/* API Key */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">API Key</label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input
-              type={showApiKey ? 'text' : 'password'}
-              value={settings.providers[settings.selectedProvider].apiKey}
-              onChange={(e) =>
-                updateProviderSettings(settings.selectedProvider, {
-                  apiKey: e.target.value,
-                })
-              }
-              placeholder={
-                settings.selectedProvider === 'maple'
-                  ? 'Maple API key (from dashboard)'
-                  : 'sk-...'
-              }
-            />
+      <div className="space-y-10">
+        {/* Provider Selection */}
+        <section className="space-y-5">
+          <div>
+            <h3 className="text-sm font-medium text-surface-200 mb-1">
+              LLM Provider
+            </h3>
+            <p className="text-xs text-surface-500">
+              Choose which AI service to use for analysis
+            </p>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowApiKey(!showApiKey)}
-          >
-            {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </Button>
-        </div>
-        <p className="text-xs text-gray-500">
-          Your API key is stored locally in your browser. It never leaves your device
-          except to authenticate with the LLM provider.
-        </p>
-      </div>
 
-      {/* Custom Base URL (for advanced users) */}
-      {settings.selectedProvider === 'maple' && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Base URL</label>
-          <Input
-            value={settings.providers[settings.selectedProvider].baseUrl}
-            onChange={(e) =>
-              updateProviderSettings(settings.selectedProvider, {
-                baseUrl: e.target.value,
-              })
-            }
-            placeholder={PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl}
-          />
-          <p className="text-xs text-gray-500">
-            Default: {PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl}
-          </p>
-        </div>
-      )}
-
-      {/* Model Selection */}
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Model</label>
-        <Select
-          value={settings.selectedModel}
-          onValueChange={setSelectedModel}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {currentConfig.models.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.name}
-              </SelectItem>
+          <div className="grid grid-cols-3 gap-3">
+            {providerIds.map((id) => (
+              <ProviderCard
+                key={id}
+                id={id}
+                name={PROVIDER_DEFAULTS[id].name}
+                isSelected={settings.selectedProvider === id}
+                onSelect={() => setSelectedProvider(id)}
+              />
             ))}
-          </SelectContent>
-        </Select>
-      </div>
+          </div>
 
-      {/* Connection Test */}
-      <div className="pt-4 border-t">
-        <ConnectionTest />
+          <ProviderInfo providerId={settings.selectedProvider} />
+        </section>
+
+        {/* API Key */}
+        <section className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-surface-200 mb-1">
+              API Key
+            </h3>
+            <p className="text-xs text-surface-500">
+              Your key is stored locally and never sent to our servers
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                type={showApiKey ? 'text' : 'password'}
+                value={settings.providers[settings.selectedProvider].apiKey}
+                onChange={(e) =>
+                  updateProviderSettings(settings.selectedProvider, {
+                    apiKey: e.target.value,
+                  })
+                }
+                placeholder={
+                  settings.selectedProvider === 'maple'
+                    ? 'Maple API key'
+                    : settings.selectedProvider === 'openrouter'
+                    ? 'sk-or-v1-...'
+                    : 'sk-...'
+                }
+                className="pr-10 font-mono text-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="flex-shrink-0"
+            >
+              {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          <div className="flex items-start gap-2.5 text-xs text-surface-500 p-3 rounded-lg bg-surface-900/50 border border-surface-800/50">
+            <Shield className="h-4 w-4 flex-shrink-0 mt-0.5 text-surface-400" />
+            <span>
+              Your API key is stored in your browser's local storage. It's only used to
+              authenticate directly with {PROVIDER_DEFAULTS[settings.selectedProvider].name}.
+            </span>
+          </div>
+        </section>
+
+        {/* Custom Base URL (Maple only) */}
+        {settings.selectedProvider === 'maple' && (
+          <section className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium text-surface-200 mb-1">
+                Proxy URL
+              </h3>
+              <p className="text-xs text-surface-500">
+                The local endpoint where Maple proxy is running
+              </p>
+            </div>
+
+            <Input
+              value={settings.providers.maple.baseUrl}
+              onChange={(e) =>
+                updateProviderSettings('maple', { baseUrl: e.target.value })
+              }
+              placeholder={PROVIDER_DEFAULTS.maple.baseUrl}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-surface-600">
+              Default: {PROVIDER_DEFAULTS.maple.baseUrl}
+            </p>
+          </section>
+        )}
+
+        {/* Model Selection */}
+        <section className="space-y-4">
+          <div>
+            <h3 className="text-sm font-medium text-surface-200 mb-1">
+              Model
+            </h3>
+            <p className="text-xs text-surface-500">
+              Select which model to use for analysis
+            </p>
+          </div>
+
+          <Select value={settings.selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {currentConfig.models.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </section>
+
+        {/* Connection Test */}
+        <section className="pt-6 border-t border-surface-800/60">
+          <ConnectionTest />
+        </section>
       </div>
     </div>
   )
 }
 
+function ProviderCard({
+  id,
+  name,
+  isSelected,
+  onSelect,
+}: {
+  id: ProviderId
+  name: string
+  isSelected: boolean
+  onSelect: () => void
+}) {
+  const icons: Record<ProviderId, React.ReactNode> = {
+    openrouter: <Zap className="h-4 w-4" />,
+    openai: <span className="text-sm font-bold">AI</span>,
+    maple: <Shield className="h-4 w-4" />,
+  }
+
+  return (
+    <button
+      onClick={onSelect}
+      className={`
+        relative p-4 rounded-xl border-2 text-left transition-all duration-200
+        ${isSelected
+          ? 'border-accent-500/50 bg-accent-500/5'
+          : 'border-surface-800 hover:border-surface-700 hover:bg-surface-900/50'
+        }
+      `}
+    >
+      {isSelected && (
+        <div className="absolute top-3 right-3">
+          <CheckCircle2 className="h-5 w-5 text-accent-500" />
+        </div>
+      )}
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`text-surface-400 ${isSelected ? 'text-accent-500' : ''}`}>
+          {icons[id]}
+        </div>
+        <span className="font-medium text-sm text-surface-200">
+          {name}
+        </span>
+      </div>
+      <div className="text-xs text-surface-500">
+        {id === 'openrouter' && 'Multi-model'}
+        {id === 'openai' && 'Direct API'}
+        {id === 'maple' && 'Privacy-first'}
+      </div>
+    </button>
+  )
+}
+
+function ProviderInfo({ providerId }: { providerId: ProviderId }) {
+  const info = {
+    openrouter: {
+      description: 'Access Claude, GPT-4, Gemini, and more with a single API key.',
+      link: 'https://openrouter.ai/keys',
+      linkText: 'Get OpenRouter API key',
+    },
+    openai: {
+      description: 'Direct access to OpenAI models including GPT-4o and GPT-4 Turbo.',
+      link: 'https://platform.openai.com/api-keys',
+      linkText: 'Get OpenAI API key',
+    },
+    maple: {
+      description: 'Privacy-focused AI with end-to-end encryption. Requires the Maple desktop app.',
+      link: 'https://trymaple.ai/downloads',
+      linkText: 'Download Maple app',
+    },
+  }
+
+  const { description, link, linkText } = info[providerId]
+
+  return (
+    <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-900/50 border border-surface-800/50">
+      <div className="flex-1">
+        <p className="text-sm text-surface-400 leading-relaxed">{description}</p>
+      </div>
+      <a
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-accent-500 hover:text-accent-400 transition-colors"
+      >
+        {linkText}
+        <ExternalLink className="h-3.5 w-3.5" />
+      </a>
+    </div>
+  )
+}
+
 function ConnectionTest() {
-  const { settings, getCurrentProviderConfig } = useSettings()
+  const { settings } = useSettings()
   const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
   const testConnection = async () => {
-    const config = getCurrentProviderConfig()
-    if (!config.apiKey) {
+    const apiKey = settings.providers[settings.selectedProvider].apiKey
+    if (!apiKey) {
       setStatus('error')
       setErrorMessage('API key is required')
       return
@@ -191,18 +279,22 @@ function ConnectionTest() {
     setErrorMessage('')
 
     try {
-      const baseUrl = settings.providers[settings.selectedProvider].baseUrl ||
+      const baseUrl =
+        settings.providers[settings.selectedProvider].baseUrl ||
         PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      }
+
+      if (settings.selectedProvider === 'openrouter') {
+        headers['HTTP-Referer'] = window.location.origin
+      }
 
       const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${config.apiKey}`,
-          ...(settings.selectedProvider === 'openrouter' && {
-            'HTTP-Referer': window.location.origin,
-          }),
-        },
+        headers,
         body: JSON.stringify({
           model: settings.selectedModel,
           messages: [{ role: 'user', content: 'Say "connected" and nothing else.' }],
@@ -223,15 +315,30 @@ function ConnectionTest() {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <Button variant="outline" onClick={testConnection} disabled={status === 'testing'}>
-        {status === 'testing' ? 'Testing...' : 'Test Connection'}
+        {status === 'testing' ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Testing...
+          </>
+        ) : (
+          'Test Connection'
+        )}
       </Button>
+
       {status === 'success' && (
-        <p className="text-sm text-green-600">Connection successful!</p>
+        <div className="flex items-center gap-2 text-sm text-green-400 animate-fade-in">
+          <CheckCircle2 className="h-4 w-4" />
+          Connection successful
+        </div>
       )}
+
       {status === 'error' && (
-        <p className="text-sm text-red-600">{errorMessage || 'Connection failed'}</p>
+        <div className="flex items-center gap-2 text-sm text-red-400 animate-fade-in">
+          <XCircle className="h-4 w-4" />
+          {errorMessage || 'Connection failed'}
+        </div>
       )}
     </div>
   )

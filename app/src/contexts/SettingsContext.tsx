@@ -25,10 +25,13 @@ const defaultSettings: Settings = {
 interface SettingsContextValue {
   settings: Settings
   isLoading: boolean
+  hasValidApiKey: boolean
+  hasCompletedSetup: boolean
   updateProviderSettings: (providerId: ProviderId, settings: Partial<ProviderSettings>) => Promise<void>
   setSelectedProvider: (providerId: ProviderId) => Promise<void>
   setSelectedModel: (model: string) => Promise<void>
   getCurrentProviderConfig: () => { apiKey: string; baseUrl: string; models: typeof PROVIDER_DEFAULTS.openrouter.models }
+  markSetupComplete: () => void
 }
 
 const SettingsContext = createContext<SettingsContextValue | null>(null)
@@ -36,6 +39,12 @@ const SettingsContext = createContext<SettingsContextValue | null>(null)
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<Settings>(defaultSettings)
   const [isLoading, setIsLoading] = useState(true)
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(() => {
+    return localStorage.getItem('setup-complete') === 'true'
+  })
+
+  // Computed: does the current provider have a valid API key?
+  const hasValidApiKey = Boolean(settings.providers[settings.selectedProvider]?.apiKey)
 
   // Load settings on mount
   useEffect(() => {
@@ -118,15 +127,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }, [settings])
 
+  const markSetupComplete = useCallback(() => {
+    localStorage.setItem('setup-complete', 'true')
+    setHasCompletedSetup(true)
+  }, [])
+
   return (
     <SettingsContext.Provider
       value={{
         settings,
         isLoading,
+        hasValidApiKey,
+        hasCompletedSetup,
         updateProviderSettings,
         setSelectedProvider,
         setSelectedModel,
         getCurrentProviderConfig,
+        markSetupComplete,
       }}
     >
       {children}
