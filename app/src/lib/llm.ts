@@ -37,7 +37,7 @@ export async function streamChat(
   // OpenRouter requires referer header
   if (providerId === 'openrouter') {
     headers['HTTP-Referer'] = window.location.origin
-    headers['X-Title'] = 'Interview Analysis'
+    headers['X-Title'] = 'Hearsay'
   }
 
   const response = await fetch(`${effectiveBaseUrl}/chat/completions`, {
@@ -118,7 +118,7 @@ export async function chat(
 
   if (providerId === 'openrouter') {
     headers['HTTP-Referer'] = window.location.origin
-    headers['X-Title'] = 'Interview Analysis'
+    headers['X-Title'] = 'Hearsay'
   }
 
   const response = await fetch(`${effectiveBaseUrl}/chat/completions`, {

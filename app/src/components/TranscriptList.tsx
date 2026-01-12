@@ -47,7 +47,7 @@ export function TranscriptList({ selectedIds, onSelectionChange }: TranscriptLis
     return (
       <div className="flex items-center justify-center py-12 text-surface-500">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-surface-700 border-t-accent-500 rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-surface-300 border-t-accent-500 rounded-full animate-spin" />
           <span className="text-sm">Loading transcripts...</span>
         </div>
       </div>
@@ -57,9 +57,9 @@ export function TranscriptList({ selectedIds, onSelectionChange }: TranscriptLis
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-surface-800/60">
+      <div className="px-5 py-4 border-b border-surface-200">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="font-display text-base font-semibold text-surface-100">
+          <h2 className="font-display text-base font-semibold text-surface-900">
             Transcripts
           </h2>
           <Button size="sm" onClick={() => setAddDialogOpen(true)}>
@@ -70,7 +70,7 @@ export function TranscriptList({ selectedIds, onSelectionChange }: TranscriptLis
         {transcripts.length > 0 && (
           <p className="text-xs text-surface-500">
             {selectedIds.size > 0 ? (
-              <span className="text-accent-400">{selectedIds.size} of {transcripts.length} selected</span>
+              <span className="text-accent-600">{selectedIds.size} of {transcripts.length} selected</span>
             ) : (
               `${transcripts.length} transcript${transcripts.length !== 1 ? 's' : ''}`
             )}
@@ -83,11 +83,11 @@ export function TranscriptList({ selectedIds, onSelectionChange }: TranscriptLis
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 animate-fade-in">
           <div className="relative mb-5">
             <div className="absolute inset-0 bg-accent-500/10 rounded-2xl blur-2xl" />
-            <div className="relative w-16 h-16 rounded-2xl bg-surface-800 border border-surface-700 flex items-center justify-center">
-              <FileText className="h-8 w-8 text-surface-500" />
+            <div className="relative w-16 h-16 rounded-2xl bg-surface-100 border border-surface-200 flex items-center justify-center">
+              <FileText className="h-8 w-8 text-surface-400" />
             </div>
           </div>
-          <h3 className="font-display text-base font-medium text-surface-200 mb-1">
+          <h3 className="font-display text-base font-medium text-surface-800 mb-1">
             No transcripts yet
           </h3>
           <p className="text-sm text-surface-500 text-center mb-5 max-w-[240px]">
@@ -101,10 +101,10 @@ export function TranscriptList({ selectedIds, onSelectionChange }: TranscriptLis
       ) : (
         <>
           {/* Select all */}
-          <div className="px-5 py-2.5 border-b border-surface-800/40">
+          <div className="px-5 py-2.5 border-b border-surface-200">
             <button
               onClick={selectAll}
-              className="text-xs font-medium text-surface-500 hover:text-accent-400 transition-colors"
+              className="text-xs font-medium text-surface-500 hover:text-accent-600 transition-colors"
             >
               {selectedIds.size === transcripts.length ? 'Deselect all' : 'Select all'}
             </button>
@@ -160,8 +160,8 @@ function TranscriptItem({
         group relative flex items-start gap-3 p-3.5 rounded-xl cursor-pointer transition-all duration-200
         animate-slide-up
         ${isSelected
-          ? 'bg-accent-500/10 ring-1 ring-accent-500/30'
-          : 'hover:bg-surface-800/60'
+          ? 'bg-accent-100 ring-1 ring-accent-300'
+          : 'hover:bg-surface-100'
         }
       `}
       style={{ animationDelay: `${index * 30}ms` }}
@@ -178,7 +178,7 @@ function TranscriptItem({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-sm text-surface-200 truncate group-hover:text-surface-100 transition-colors">
+        <div className="font-medium text-sm text-surface-800 truncate group-hover:text-surface-900 transition-colors">
           {transcript.name}
         </div>
         <div className="text-xs text-surface-500 line-clamp-2 mt-1 leading-relaxed">
@@ -196,7 +196,7 @@ function TranscriptItem({
       {/* Actions */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
-          className="p-1.5 rounded-lg text-surface-500 hover:text-surface-200 hover:bg-surface-700 transition-colors"
+          className="p-1.5 rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-200 transition-colors"
           onClick={(e) => {
             e.stopPropagation()
             onEdit()
@@ -205,7 +205,7 @@ function TranscriptItem({
           <Edit2 className="h-4 w-4" />
         </button>
         <button
-          className="p-1.5 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="p-1.5 rounded-lg text-surface-400 hover:text-red-600 hover:bg-red-50 transition-colors"
           onClick={(e) => {
             e.stopPropagation()
             onDelete()

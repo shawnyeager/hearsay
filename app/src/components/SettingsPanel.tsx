@@ -27,20 +27,11 @@ export function SettingsPanel() {
 
   return (
     <div className="max-w-2xl animate-fade-in">
-      <div className="mb-8">
-        <h2 className="font-display text-2xl font-semibold text-surface-100 mb-1">
-          Settings
-        </h2>
-        <p className="text-sm text-surface-500">
-          Configure your LLM provider and API credentials
-        </p>
-      </div>
-
       <div className="space-y-10">
         {/* Provider Selection */}
         <section className="space-y-5">
           <div>
-            <h3 className="text-sm font-medium text-surface-200 mb-1">
+            <h3 className="text-sm font-medium text-surface-800 mb-1">
               LLM Provider
             </h3>
             <p className="text-xs text-surface-500">
@@ -66,7 +57,7 @@ export function SettingsPanel() {
         {/* API Key */}
         <section className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-surface-200 mb-1">
+            <h3 className="text-sm font-medium text-surface-800 mb-1">
               API Key
             </h3>
             <p className="text-xs text-surface-500">
@@ -104,8 +95,8 @@ export function SettingsPanel() {
             </Button>
           </div>
 
-          <div className="flex items-start gap-2.5 text-xs text-surface-500 p-3 rounded-lg bg-surface-900/50 border border-surface-800/50">
-            <Shield className="h-4 w-4 flex-shrink-0 mt-0.5 text-surface-400" />
+          <div className="flex items-start gap-2.5 text-xs text-surface-500 p-3 rounded-lg bg-surface-100 border border-surface-200">
+            <Shield className="h-4 w-4 flex-shrink-0 mt-0.5 text-surface-500" />
             <span>
               Your API key is stored in your browser's local storage. It's only used to
               authenticate directly with {PROVIDER_DEFAULTS[settings.selectedProvider].name}.
@@ -117,7 +108,7 @@ export function SettingsPanel() {
         {settings.selectedProvider === 'maple' && (
           <section className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-surface-200 mb-1">
+              <h3 className="text-sm font-medium text-surface-800 mb-1">
                 Proxy URL
               </h3>
               <p className="text-xs text-surface-500">
@@ -142,7 +133,7 @@ export function SettingsPanel() {
         {/* Model Selection */}
         <section className="space-y-4">
           <div>
-            <h3 className="text-sm font-medium text-surface-200 mb-1">
+            <h3 className="text-sm font-medium text-surface-800 mb-1">
               Model
             </h3>
             <p className="text-xs text-surface-500">
@@ -165,7 +156,7 @@ export function SettingsPanel() {
         </section>
 
         {/* Connection Test */}
-        <section className="pt-6 border-t border-surface-800/60">
+        <section className="pt-6 border-t border-surface-200">
           <ConnectionTest />
         </section>
       </div>
@@ -185,9 +176,9 @@ function ProviderCard({
   onSelect: () => void
 }) {
   const icons: Record<ProviderId, React.ReactNode> = {
-    openrouter: <Zap className="h-4 w-4" />,
-    openai: <span className="text-sm font-bold">AI</span>,
     maple: <Shield className="h-4 w-4" />,
+    openai: <span className="text-sm font-bold">AI</span>,
+    openrouter: <Zap className="h-4 w-4" />,
   }
 
   return (
@@ -196,8 +187,8 @@ function ProviderCard({
       className={`
         relative p-4 rounded-xl border-2 text-left transition-all duration-200
         ${isSelected
-          ? 'border-accent-500/50 bg-accent-500/5'
-          : 'border-surface-800 hover:border-surface-700 hover:bg-surface-900/50'
+          ? 'border-accent-400 bg-accent-50'
+          : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'
         }
       `}
     >
@@ -207,10 +198,10 @@ function ProviderCard({
         </div>
       )}
       <div className="flex items-center gap-2 mb-2">
-        <div className={`text-surface-400 ${isSelected ? 'text-accent-500' : ''}`}>
+        <div className={`text-surface-500 ${isSelected ? 'text-accent-600' : ''}`}>
           {icons[id]}
         </div>
-        <span className="font-medium text-sm text-surface-200">
+        <span className="font-medium text-sm text-surface-800">
           {name}
         </span>
       </div>
@@ -225,35 +216,33 @@ function ProviderCard({
 
 function ProviderInfo({ providerId }: { providerId: ProviderId }) {
   const info = {
-    openrouter: {
-      description: 'Access Claude, GPT-4, Gemini, and more with a single API key.',
-      link: 'https://openrouter.ai/keys',
-      linkText: 'Get OpenRouter API key',
+    maple: {
+      description: 'Privacy-focused AI with end-to-end encryption. Requires the Maple desktop app.',
+      link: 'https://trymaple.ai/downloads',
+      linkText: 'Download Maple app',
     },
     openai: {
       description: 'Direct access to OpenAI models including GPT-4o and GPT-4 Turbo.',
       link: 'https://platform.openai.com/api-keys',
       linkText: 'Get OpenAI API key',
     },
-    maple: {
-      description: 'Privacy-focused AI with end-to-end encryption. Requires the Maple desktop app.',
-      link: 'https://trymaple.ai/downloads',
-      linkText: 'Download Maple app',
+    openrouter: {
+      description: 'Access Claude, GPT-4, Gemini, and more with a single API key.',
+      link: 'https://openrouter.ai/keys',
+      linkText: 'Get OpenRouter API key',
     },
   }
 
   const { description, link, linkText } = info[providerId]
 
   return (
-    <div className="flex items-start gap-4 p-4 rounded-xl bg-surface-900/50 border border-surface-800/50">
-      <div className="flex-1">
-        <p className="text-sm text-surface-400 leading-relaxed">{description}</p>
-      </div>
+    <div className="p-4 rounded-xl bg-surface-50 border border-surface-200 space-y-3">
+      <p className="text-sm text-surface-600 leading-relaxed">{description}</p>
       <a
         href={link}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex-shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-accent-500 hover:text-accent-400 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-accent-600 hover:text-accent-500 hover:underline underline-offset-4 transition-colors cursor-pointer"
       >
         {linkText}
         <ExternalLink className="h-3.5 w-3.5" />
@@ -328,14 +317,14 @@ function ConnectionTest() {
       </Button>
 
       {status === 'success' && (
-        <div className="flex items-center gap-2 text-sm text-green-400 animate-fade-in">
+        <div className="flex items-center gap-2 text-sm text-green-600 animate-fade-in">
           <CheckCircle2 className="h-4 w-4" />
           Connection successful
         </div>
       )}
 
       {status === 'error' && (
-        <div className="flex items-center gap-2 text-sm text-red-400 animate-fade-in">
+        <div className="flex items-center gap-2 text-sm text-red-600 animate-fade-in">
           <XCircle className="h-4 w-4" />
           {errorMessage || 'Connection failed'}
         </div>

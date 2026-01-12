@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 import type { Transcript, Analysis, Settings } from '@/types'
 
-const db = new Dexie('InterviewAnalysis') as Dexie & {
+const db = new Dexie('Hearsay') as Dexie & {
   transcripts: EntityTable<Transcript, 'id'>
   analyses: EntityTable<Analysis, 'id'>
   settings: EntityTable<Settings & { id: string }, 'id'>

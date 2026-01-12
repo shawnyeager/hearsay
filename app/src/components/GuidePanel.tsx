@@ -2,7 +2,7 @@ export function GuidePanel() {
   return (
     <div className="max-w-3xl animate-fade-in">
       <div className="mb-8">
-        <h2 className="font-display text-2xl font-semibold text-surface-100 mb-1">
+        <h2 className="font-display text-2xl font-semibold text-surface-900 mb-1">
           Interview Guide
         </h2>
         <p className="text-sm text-surface-500">
@@ -63,7 +63,7 @@ export function GuidePanel() {
 
         {/* Phase 4 */}
         <Section title="Phase 4: Problems" time="6 min" color="amber" highlight>
-          <div className="text-sm text-amber-400 font-medium mb-4 flex items-center gap-2">
+          <div className="text-sm text-amber-700 font-medium mb-4 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
             This is the core of the interview. Spend the most energy here.
           </div>
@@ -121,7 +121,7 @@ export function GuidePanel() {
 
         {/* Probing Techniques */}
         <div className="card p-5">
-          <h3 className="font-display font-semibold text-surface-100 mb-4">
+          <h3 className="font-display font-semibold text-surface-900 mb-4">
             Probing Techniques
           </h3>
           <div className="space-y-0">
@@ -136,7 +136,7 @@ export function GuidePanel() {
 
         {/* Tips */}
         <div className="card p-5">
-          <h3 className="font-display font-semibold text-surface-100 mb-4">
+          <h3 className="font-display font-semibold text-surface-900 mb-4">
             What Makes a Transcript Useful
           </h3>
           <div className="space-y-3">
@@ -148,7 +148,7 @@ export function GuidePanel() {
               ["Attribution-ready", "Interviewee name/role/company in the file"],
             ].map(([title, desc]) => (
               <div key={title} className="flex gap-4 text-sm">
-                <span className="font-medium text-surface-300 w-44 flex-shrink-0">
+                <span className="font-medium text-surface-700 w-44 flex-shrink-0">
                   {title}
                 </span>
                 <span className="text-surface-500">{desc}</span>
@@ -196,14 +196,14 @@ function Section({
     <div
       className={`rounded-xl border p-5 transition-all ${
         highlight
-          ? 'border-amber-500/30 bg-amber-500/5'
-          : `border-surface-800 ${borderClasses[color]}`
+          ? 'border-amber-300 bg-amber-50'
+          : `border-surface-200 ${borderClasses[color]}`
       }`}
     >
       <div className="flex items-center gap-3 mb-4">
         <div className={`w-2 h-2 rounded-full ${colorClasses[color]}`} />
-        <h3 className="font-display font-semibold text-surface-100">{title}</h3>
-        <span className="text-xs text-surface-500 bg-surface-800 px-2 py-0.5 rounded-full">
+        <h3 className="font-display font-semibold text-surface-900">{title}</h3>
+        <span className="text-xs text-surface-600 bg-surface-100 px-2 py-0.5 rounded-full">
           {time}
         </span>
       </div>
@@ -218,7 +218,7 @@ function ScriptBlock({ label, children }: { label?: string; children: React.Reac
       {label && (
         <div className="text-xs font-medium text-surface-500 mb-1.5">{label}</div>
       )}
-      <blockquote className="text-sm text-surface-300 bg-surface-800/50 rounded-lg p-4 border-l-2 border-surface-600 italic leading-relaxed">
+      <blockquote className="text-sm text-surface-700 bg-surface-50 rounded-lg p-4 border-l-2 border-surface-300 italic leading-relaxed">
         {children}
       </blockquote>
     </div>
@@ -231,7 +231,7 @@ function ListenFor({ items }: { items: string[] }) {
       <div className="text-xs font-medium text-surface-500 mb-2">Listen for:</div>
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
-          <span key={item} className="text-xs bg-surface-800 text-surface-400 px-2.5 py-1 rounded-lg border border-surface-700/50">
+          <span key={item} className="text-xs bg-surface-100 text-surface-600 px-2.5 py-1 rounded-lg border border-surface-200">
             {item}
           </span>
         ))}
@@ -246,8 +246,8 @@ function KeyPoints({ points }: { points: string[] }) {
       <div className="text-xs font-medium text-surface-500 mb-2">Key points:</div>
       <ul className="space-y-1.5">
         {points.map((point) => (
-          <li key={point} className="text-sm text-surface-400 flex items-center gap-2">
-            <span className="w-1 h-1 rounded-full bg-surface-600 flex-shrink-0" />
+          <li key={point} className="text-sm text-surface-600 flex items-center gap-2">
+            <span className="w-1 h-1 rounded-full bg-surface-400 flex-shrink-0" />
             {point}
           </li>
         ))}
@@ -258,8 +258,8 @@ function KeyPoints({ points }: { points: string[] }) {
 
 function ProbeRow({ technique, example, isLast }: { technique: string; example: string; isLast?: boolean }) {
   return (
-    <div className={`flex gap-4 text-sm py-3 ${!isLast ? 'border-b border-surface-800/50' : ''}`}>
-      <div className="w-40 flex-shrink-0 font-medium text-surface-300">
+    <div className={`flex gap-4 text-sm py-3 ${!isLast ? 'border-b border-surface-200' : ''}`}>
+      <div className="w-40 flex-shrink-0 font-medium text-surface-700">
         {technique}
       </div>
       <div className="text-surface-500">

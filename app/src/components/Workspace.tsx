@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Plus, Play, Square, ChevronDown, ChevronUp, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock } from 'lucide-react'
+import { Plus, Play, Square, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { useAnalyses } from '@/contexts/AnalysisContext'
@@ -8,18 +8,21 @@ import { APIKeyPrompt } from './APIKeyPrompt'
 import { WelcomePanel } from './WelcomePanel'
 import { TranscriptChips } from './TranscriptChips'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
-import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
+import { scoreColors } from '@/lib/theme'
 import type { Analysis, AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
 interface WorkspaceProps {
   loadedAnalysis?: Analysis | null
   onClearLoaded?: () => void
+  onGuideClick?: () => void
+  triggerAddDialog?: number
 }
 
-export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
-  const { settings, hasValidApiKey, getCurrentProviderConfig, setSelectedModel } = useSettings()
+export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, triggerAddDialog }: WorkspaceProps) {
+  const { settings, hasValidApiKey } = useSettings()
   const { transcripts } = useTranscripts()
   const { addAnalysis } = useAnalyses()
 
@@ -43,11 +46,9 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
   const [score, setScore] = useState<(RubricScore & { commentary: string }) | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [showAPIPrompt, setShowAPIPrompt] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const currentConfig = getCurrentProviderConfig()
   const selectedTranscripts = transcripts.filter((t) => selectedIds.has(t.id))
 
   // Load historical analysis when provided
@@ -59,6 +60,13 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
       setError(null)
     }
   }, [loadedAnalysis])
+
+  // Open add dialog when triggered from parent (e.g., from guide panel)
+  useEffect(() => {
+    if (triggerAddDialog && triggerAddDialog > 0) {
+      setAddDialogOpen(true)
+    }
+  }, [triggerAddDialog])
 
   const isViewingHistory = Boolean(loadedAnalysis)
 
@@ -186,7 +194,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
       {/* Control Bar - only show when there are transcripts */}
       {transcripts.length > 0 && (
-      <div className="flex-shrink-0 px-6 py-4 border-b border-surface-800/60 bg-surface-950/50">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-surface-200 bg-white/50">
         <div className="flex flex-wrap items-center gap-4">
           {/* Transcripts */}
           <div className="flex-1 flex items-center gap-3 min-w-0">
@@ -199,15 +207,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
               onSelectionChange={handleSelectionChange}
             />
           </div>
-
-          {/* Advanced Toggle */}
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="text-xs text-surface-500 hover:text-surface-300 flex items-center gap-1 transition-colors"
-          >
-            Advanced
-            {showAdvanced ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </button>
 
           {/* Run Button */}
           {isRunning ? (
@@ -226,38 +225,17 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
             </Button>
           )}
         </div>
-
-        {/* Advanced Options */}
-        {showAdvanced && (
-          <div className="mt-4 pt-4 border-t border-surface-800/40 flex items-center gap-4 animate-slide-down">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-surface-500">Model</span>
-              <Select value={settings.selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {currentConfig.models.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
       </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 animate-slide-down">
+        <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-300">Error</p>
-              <p className="text-sm text-red-400/80 mt-0.5">{error}</p>
+              <p className="text-sm font-medium text-red-700">Error</p>
+              <p className="text-sm text-red-600 mt-0.5">{error}</p>
             </div>
           </div>
         </div>
@@ -269,11 +247,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
           <div className="space-y-4">
             {/* Historical Analysis Banner */}
             {isViewingHistory && (
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-800/50 border border-surface-700/50 animate-slide-down">
+              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-surface-400" />
+                  <Clock className="h-4 w-4 text-surface-500" />
                   <div>
-                    <span className="text-sm font-medium text-surface-300">
+                    <span className="text-sm font-medium text-surface-700">
                       Viewing historical analysis
                     </span>
                     <span className="text-xs text-surface-500 ml-2">
@@ -304,7 +282,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
 
             {/* Analysis Output */}
             <div className="card-elevated overflow-hidden animate-scale-in">
-              <div className="px-4 py-3 border-b border-surface-800/50 bg-surface-800/30">
+              <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
                 <div className="flex items-center gap-2">
                   <div className="relative">
                     <Zap className="h-4 w-4 text-accent-500" />
@@ -314,11 +292,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-surface-300">
+                  <span className="text-sm font-medium text-surface-700">
                     {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
                   </span>
                   {isRunning && (
-                    <span className="text-xs text-accent-400 ml-auto flex items-center gap-1.5">
+                    <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
                       Generating...
                     </span>
@@ -338,7 +316,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
             {!isRunning && content && (
               <div className="flex items-center gap-3 animate-fade-in">
                 {isScoring && (
-                  <div className="flex items-center gap-2 text-sm text-surface-400">
+                  <div className="flex items-center gap-2 text-sm text-surface-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Scoring quality...
                   </div>
@@ -351,7 +329,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
             )}
           </div>
         ) : transcripts.length === 0 ? (
-          <WelcomePanel onAddClick={() => setAddDialogOpen(true)} />
+          <WelcomePanel onAddClick={() => setAddDialogOpen(true)} onGuideClick={onGuideClick} />
         ) : (
           <EmptyState hasSelection={selectedTranscripts.length > 0} />
         )}
@@ -383,12 +361,12 @@ function EmptyState({ hasSelection }: { hasSelection: boolean }) {
     return (
       <div className="h-full flex flex-col items-center justify-center animate-fade-in">
         <div className="relative mb-6">
-          <div className="absolute inset-0 bg-surface-800/50 rounded-3xl blur-2xl scale-150" />
-          <div className="relative w-20 h-20 rounded-2xl bg-surface-900 border border-surface-800 flex items-center justify-center">
-            <Zap className="h-10 w-10 text-surface-600" />
+          <div className="absolute inset-0 bg-surface-200/50 rounded-3xl blur-2xl scale-150" />
+          <div className="relative w-20 h-20 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
+            <Zap className="h-10 w-10 text-surface-400" />
           </div>
         </div>
-        <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
+        <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
           Select transcripts to analyze
         </h3>
         <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
@@ -401,12 +379,12 @@ function EmptyState({ hasSelection }: { hasSelection: boolean }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-accent-500/20 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+        <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
         <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
-          <Zap className="h-10 w-10 text-surface-950" strokeWidth={2} />
+          <Zap className="h-10 w-10 text-white" strokeWidth={2} />
         </div>
       </div>
-      <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
+      <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         Ready to analyze
       </h3>
       <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
@@ -427,43 +405,34 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
     { key: 'synthesisQuality', label: 'Synthesized', value: score.synthesisQuality },
   ]
 
-  const getScoreColor = (value: number) => {
-    if (value >= 4) return 'text-green-400'
-    if (value >= 3) return 'text-amber-400'
-    return 'text-red-400'
-  }
-
-  const getScoreBg = (value: number) => {
-    if (value >= 4) return 'bg-green-500/10'
-    if (value >= 3) return 'bg-amber-500/10'
-    return 'bg-red-500/10'
-  }
+  const getScoreColor = scoreColors.getText
+  const getScoreBg = scoreColors.getBg
 
   return (
     <div className="card-elevated p-5 animate-slide-up">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-surface-800 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-surface-400" />
+          <div className="icon-box icon-box-sm">
+            <BarChart3 className="h-5 w-5 text-surface-500" />
           </div>
           <div>
-            <span className="font-display font-semibold text-surface-100">Quality Score</span>
+            <span className="font-display font-semibold text-surface-900">Quality Score</span>
             <div className="text-xs text-surface-500 mt-0.5">Analysis evaluation</div>
           </div>
         </div>
         <div className="text-right">
           <div className={`text-3xl font-display font-bold ${getRatingColor(score.total)}`}>
-            {score.total}<span className="text-lg text-surface-600">/35</span>
+            {score.total}<span className="text-lg text-surface-400">/35</span>
           </div>
           <span
             className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${
               score.total >= 32
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                ? 'bg-green-50 text-green-700 border border-green-200'
                 : score.total >= 25
-                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : score.total >= 18
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
             }`}
           >
             {getRatingFromScore(score.total)}
@@ -483,7 +452,7 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
       </div>
 
       {score.commentary && (
-        <p className="text-sm text-surface-400 border-t border-surface-800 pt-4 leading-relaxed">
+        <p className="text-sm text-surface-600 border-t border-surface-200 pt-4 leading-relaxed">
           {score.commentary}
         </p>
       )}

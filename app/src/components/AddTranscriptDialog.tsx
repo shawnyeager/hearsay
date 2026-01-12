@@ -162,11 +162,11 @@ export function AddTranscriptDialog({ open, onOpenChange, onTranscriptsAdded }: 
 
         {/* Full-dialog drop overlay */}
         {isDragging && (
-          <div className="absolute inset-0 z-50 bg-surface-900/95 rounded-2xl border-2 border-dashed border-accent-500 flex items-center justify-center animate-fade-in">
+          <div className="absolute inset-0 z-50 bg-white/95 rounded-2xl border-2 border-dashed border-accent-500 flex items-center justify-center animate-fade-in">
             <div className="text-center">
               <FileText className="h-12 w-12 text-accent-500 mx-auto mb-3" />
-              <p className="text-lg font-medium text-surface-100">Drop files here</p>
-              <p className="text-sm text-surface-400">.txt, .md files</p>
+              <p className="text-lg font-medium text-surface-900">Drop files here</p>
+              <p className="text-sm text-surface-500">.txt, .md files</p>
             </div>
           </div>
         )}
@@ -175,17 +175,17 @@ export function AddTranscriptDialog({ open, onOpenChange, onTranscriptsAdded }: 
           {/* Pending files list */}
           {pending.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-surface-200">
+              <p className="text-sm font-medium text-surface-800">
                 {pending.length} file{pending.length !== 1 ? 's' : ''} ready
               </p>
               <div className="space-y-1.5">
                 {pending.map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-800/50 group"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-100 group"
                   >
-                    <FileText className="h-4 w-4 text-surface-500 flex-shrink-0" />
-                    <span className="text-sm text-surface-300 truncate flex-1">
+                    <FileText className="h-4 w-4 text-surface-400 flex-shrink-0" />
+                    <span className="text-sm text-surface-700 truncate flex-1">
                       {item.name}
                     </span>
                     <span className="text-xs text-surface-500">
@@ -193,7 +193,7 @@ export function AddTranscriptDialog({ open, onOpenChange, onTranscriptsAdded }: 
                     </span>
                     <button
                       onClick={() => removePending(index)}
-                      className="p-1 rounded text-surface-500 hover:text-surface-200 hover:bg-surface-700 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-1 rounded text-surface-400 hover:text-surface-700 hover:bg-surface-200 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -204,7 +204,7 @@ export function AddTranscriptDialog({ open, onOpenChange, onTranscriptsAdded }: 
                 variant="ghost"
                 size="sm"
                 onClick={() => fileInputRef.current?.click()}
-                className="text-surface-400"
+                className="text-surface-500"
               >
                 <Upload className="h-4 w-4 mr-1.5" />
                 Add more files
@@ -216,12 +216,12 @@ export function AddTranscriptDialog({ open, onOpenChange, onTranscriptsAdded }: 
           {pending.length === 0 && (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-surface-700 hover:border-surface-600 rounded-xl p-8 text-center cursor-pointer transition-colors group"
+              className="border-2 border-dashed border-surface-300 hover:border-surface-400 rounded-xl p-8 text-center cursor-pointer transition-colors group"
             >
-              <div className="w-14 h-14 rounded-xl bg-surface-800 flex items-center justify-center mx-auto mb-3 group-hover:bg-surface-700 transition-colors">
-                <FileText className="h-7 w-7 text-surface-500" />
+              <div className="w-14 h-14 rounded-xl bg-surface-100 flex items-center justify-center mx-auto mb-3 group-hover:bg-surface-200 transition-colors">
+                <FileText className="h-7 w-7 text-surface-400" />
               </div>
-              <p className="text-sm font-medium text-surface-300">
+              <p className="text-sm font-medium text-surface-700">
                 Drop files here or click to upload
               </p>
               <p className="text-xs text-surface-500 mt-1">

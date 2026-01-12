@@ -132,8 +132,8 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
                 className={`
                   relative p-3 rounded-lg border text-left transition-all duration-200
                   ${settings.selectedProvider === id
-                    ? 'border-accent-500/50 bg-accent-500/5'
-                    : 'border-surface-800 hover:border-surface-700 hover:bg-surface-900/50'
+                    ? 'border-accent-400 bg-accent-50'
+                    : 'border-surface-200 hover:border-surface-300 hover:bg-surface-50'
                   }
                 `}
               >
@@ -142,11 +142,11 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
                 )}
                 <div className="flex items-center gap-1.5 mb-0.5">
                   {id === 'maple' ? (
-                    <Shield className="h-3.5 w-3.5 text-surface-400" />
+                    <Shield className="h-3.5 w-3.5 text-surface-500" />
                   ) : (
-                    <Zap className="h-3.5 w-3.5 text-surface-400" />
+                    <Zap className="h-3.5 w-3.5 text-surface-500" />
                   )}
-                  <span className="font-medium text-xs text-surface-200">
+                  <span className="font-medium text-xs text-surface-800">
                     {PROVIDER_DEFAULTS[id].name}
                   </span>
                 </div>
@@ -160,14 +160,14 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
           {/* API Key */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-surface-200">
+              <label className="text-sm font-medium text-surface-800">
                 API Key
               </label>
               <a
                 href={providerInfo[settings.selectedProvider].link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-accent-500 hover:text-accent-400 flex items-center gap-1"
+                className="text-xs text-accent-600 hover:text-accent-500 flex items-center gap-1"
               >
                 Get key <ExternalLink className="h-3 w-3" />
               </a>
@@ -200,7 +200,7 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
 
           {/* Model Selection */}
           <div>
-            <label className="text-sm font-medium text-surface-200 mb-1.5 block">
+            <label className="text-sm font-medium text-surface-800 mb-1.5 block">
               Model
             </label>
             <Select value={settings.selectedModel} onValueChange={setSelectedModel}>
@@ -236,14 +236,14 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
             </Button>
 
             {testStatus === 'success' && (
-              <span className="text-sm text-green-400 flex items-center gap-1.5 animate-fade-in">
+              <span className="text-sm text-green-600 flex items-center gap-1.5 animate-fade-in">
                 <CheckCircle2 className="h-4 w-4" />
                 Connected
               </span>
             )}
 
             {testStatus === 'error' && (
-              <span className="text-sm text-red-400 animate-fade-in">
+              <span className="text-sm text-red-600 animate-fade-in">
                 {errorMessage}
               </span>
             )}

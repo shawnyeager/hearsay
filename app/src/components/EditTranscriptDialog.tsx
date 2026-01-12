@@ -65,7 +65,7 @@ export function EditTranscriptDialog({
 
         <div className="flex-1 overflow-y-auto space-y-5 py-2">
           <div className="space-y-2">
-            <label htmlFor="edit-name" className="text-sm font-medium text-surface-200">
+            <label htmlFor="edit-name" className="text-sm font-medium text-surface-800">
               Name
             </label>
             <Input
@@ -77,7 +77,7 @@ export function EditTranscriptDialog({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="edit-content" className="text-sm font-medium text-surface-200">
+            <label htmlFor="edit-content" className="text-sm font-medium text-surface-800">
               Content
             </label>
             <Textarea

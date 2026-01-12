@@ -41,19 +41,19 @@ export function HistoryPanel({ open, onClose, onSelect }: HistoryPanelProps) {
       <div
         className={`
           fixed top-0 right-0 h-full w-[420px] max-w-[90vw] z-50
-          bg-surface-950 border-l border-surface-800
+          bg-white border-l border-surface-200
           transform transition-transform duration-300 ease-out
           ${open ? 'translate-x-0' : 'translate-x-full'}
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-800/60">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-surface-200">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-surface-800 flex items-center justify-center">
-              <Clock className="h-4 w-4 text-surface-400" />
+            <div className="w-9 h-9 rounded-lg bg-surface-100 flex items-center justify-center">
+              <Clock className="h-4 w-4 text-surface-500" />
             </div>
             <div>
-              <h2 className="font-display text-base font-semibold text-surface-100">
+              <h2 className="font-display text-base font-semibold text-surface-900">
                 Analysis History
               </h2>
               <p className="text-xs text-surface-500">
@@ -63,7 +63,7 @@ export function HistoryPanel({ open, onClose, onSelect }: HistoryPanelProps) {
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-surface-500 hover:text-surface-200 hover:bg-surface-800 transition-colors"
+            className="p-2 rounded-lg text-surface-400 hover:text-surface-700 hover:bg-surface-100 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -74,12 +74,12 @@ export function HistoryPanel({ open, onClose, onSelect }: HistoryPanelProps) {
           {analyses.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
               <div className="relative mb-5">
-                <div className="absolute inset-0 bg-surface-800/50 rounded-2xl blur-2xl" />
-                <div className="relative w-16 h-16 rounded-2xl bg-surface-900 border border-surface-800 flex items-center justify-center">
-                  <Zap className="h-8 w-8 text-surface-600" />
+                <div className="absolute inset-0 bg-surface-200/50 rounded-2xl blur-2xl" />
+                <div className="relative w-16 h-16 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
+                  <Zap className="h-8 w-8 text-surface-400" />
                 </div>
               </div>
-              <h3 className="font-display text-base font-medium text-surface-200 mb-1">
+              <h3 className="font-display text-base font-medium text-surface-800 mb-1">
                 No analyses yet
               </h3>
               <p className="text-sm text-surface-500 max-w-[240px]">
@@ -127,19 +127,19 @@ function HistoryItem({
   return (
     <div
       onClick={onClick}
-      className="group relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-surface-800/60 animate-slide-up"
+      className="group relative p-4 rounded-xl cursor-pointer transition-all duration-200 hover:bg-surface-100 animate-slide-up"
       style={{ animationDelay: `${index * 30}ms` }}
     >
       <div className="flex items-start gap-3">
         {/* Icon */}
-        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-800/50 flex items-center justify-center">
-          <FileText className="h-5 w-5 text-surface-500" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center">
+          <FileText className="h-5 w-5 text-surface-400" />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Transcript names */}
-          <div className="text-sm font-medium text-surface-200 truncate pr-8">
+          <div className="text-sm font-medium text-surface-800 truncate pr-8">
             {transcriptNames}
           </div>
 
@@ -153,21 +153,21 @@ function HistoryItem({
                 minute: '2-digit',
               })}
             </span>
-            <span className="w-1 h-1 rounded-full bg-surface-700" />
+            <span className="w-1 h-1 rounded-full bg-surface-300" />
             <span>{analysis.variant === 'with-quotes' ? 'Quote-Heavy' : 'Standard'}</span>
-            <span className="w-1 h-1 rounded-full bg-surface-700" />
+            <span className="w-1 h-1 rounded-full bg-surface-300" />
             <span className="truncate">{analysis.model.split('/').pop()}</span>
           </div>
 
           {/* Score badge if available */}
           {hasScore && (
             <div className="flex items-center gap-2 mt-2">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-800/50">
-                <BarChart3 className="h-3.5 w-3.5 text-surface-500" />
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface-100">
+                <BarChart3 className="h-3.5 w-3.5 text-surface-400" />
                 <span className={`text-sm font-semibold ${getRatingColor(analysis.score!.total)}`}>
                   {analysis.score!.total}/35
                 </span>
-                <span className="text-xs text-surface-600">
+                <span className="text-xs text-surface-500">
                   {getRatingFromScore(analysis.score!.total)}
                 </span>
               </div>
@@ -176,13 +176,13 @@ function HistoryItem({
         </div>
 
         {/* Arrow indicator */}
-        <ChevronRight className="flex-shrink-0 h-4 w-4 text-surface-600 group-hover:text-surface-400 transition-colors mt-1" />
+        <ChevronRight className="flex-shrink-0 h-4 w-4 text-surface-400 group-hover:text-surface-600 transition-colors mt-1" />
       </div>
 
       {/* Delete button */}
       <button
         onClick={onDelete}
-        className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-surface-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+        className="absolute top-3 right-3 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-surface-400 hover:text-red-600 hover:bg-red-50 transition-all"
       >
         <Trash2 className="h-4 w-4" />
       </button>

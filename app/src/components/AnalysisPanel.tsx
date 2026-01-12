@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
+import { scoreColors } from '@/lib/theme'
 import type { AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
@@ -143,19 +144,19 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 animate-fade-in">
         <div className="relative mb-6">
-          <div className="absolute inset-0 bg-surface-800/50 rounded-3xl blur-2xl scale-150" />
-          <div className="relative w-24 h-24 rounded-2xl bg-surface-900 border border-surface-800 flex items-center justify-center">
-            <FileText className="h-12 w-12 text-surface-600" />
+          <div className="absolute inset-0 bg-surface-200/50 rounded-3xl blur-2xl scale-150" />
+          <div className="relative w-24 h-24 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
+            <FileText className="h-12 w-12 text-surface-400" />
           </div>
         </div>
-        <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
+        <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
           Select transcripts to analyze
         </h3>
         <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
           Choose one or more interview transcripts from the sidebar, then run analysis
           to extract frequency-ranked insights.
         </p>
-        <div className="flex items-center gap-2 mt-6 text-xs text-surface-600">
+        <div className="flex items-center gap-2 mt-6 text-xs text-surface-500">
           <span>Sidebar</span>
           <ArrowRight className="h-3 w-3" />
           <span>Select</span>
@@ -171,18 +172,18 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8 animate-fade-in">
         <div className="relative mb-6">
-          <div className="absolute inset-0 bg-amber-500/10 rounded-3xl blur-2xl scale-150" />
-          <div className="relative w-24 h-24 rounded-2xl bg-surface-900 border border-amber-500/30 flex items-center justify-center">
+          <div className="absolute inset-0 bg-amber-100 rounded-3xl blur-2xl scale-150" />
+          <div className="relative w-24 h-24 rounded-2xl bg-white border border-amber-300 flex items-center justify-center">
             <AlertCircle className="h-12 w-12 text-amber-500" />
           </div>
         </div>
-        <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
+        <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
           API key required
         </h3>
         <p className="text-sm text-surface-500 text-center max-w-sm mb-4 leading-relaxed">
           Configure your LLM provider API key in Settings to run analysis.
         </p>
-        <div className="px-3 py-1.5 rounded-full bg-surface-800 text-xs text-surface-400">
+        <div className="px-3 py-1.5 rounded-full bg-surface-100 text-xs text-surface-600">
           {selectedTranscripts.length} transcript{selectedTranscripts.length !== 1 ? 's' : ''} selected
         </div>
       </div>
@@ -192,17 +193,17 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Controls */}
-      <div className="flex-shrink-0 px-6 py-4 border-b border-surface-800/60 bg-surface-950/50">
+      <div className="flex-shrink-0 px-6 py-4 border-b border-surface-200 bg-white/50">
         <div className="flex flex-wrap items-center gap-3">
           {/* Selected count */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-500/10 border border-accent-500/20 text-accent-400">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-100 border border-accent-200 text-accent-700">
             <CheckCircle2 className="h-4 w-4" />
             <span className="text-sm font-medium">
               {selectedTranscripts.length} transcript{selectedTranscripts.length !== 1 ? 's' : ''}
             </span>
           </div>
 
-          <div className="h-5 w-px bg-surface-800" />
+          <div className="h-5 w-px bg-surface-200" />
 
           {/* Variant selector */}
           <Select
@@ -235,7 +236,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
           {/* Post-analysis actions */}
           {content && !isRunning && (
             <>
-              <div className="h-5 w-px bg-surface-800" />
+              <div className="h-5 w-px bg-surface-200" />
               <Button variant="outline" onClick={handleScore} disabled={isScoring}>
                 {isScoring ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -255,12 +256,12 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
 
       {/* Error message */}
       {error && (
-        <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 animate-slide-down">
+        <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
           <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-red-300">Error</p>
-              <p className="text-sm text-red-400/80 mt-0.5">{error}</p>
+              <p className="text-sm font-medium text-red-700">Error</p>
+              <p className="text-sm text-red-600 mt-0.5">{error}</p>
             </div>
           </div>
         </div>
@@ -277,7 +278,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
       <div className="flex-1 overflow-y-auto p-6">
         {content || isRunning ? (
           <div className="card-elevated overflow-hidden animate-scale-in">
-            <div className="px-4 py-3 border-b border-surface-800/50 bg-surface-800/30">
+            <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
               <div className="flex items-center gap-2">
                 <div className="relative">
                   <Zap className="h-4 w-4 text-accent-500" />
@@ -287,11 +288,11 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-medium text-surface-300">
+                <span className="text-sm font-medium text-surface-700">
                   Analysis Output
                 </span>
                 {isRunning && (
-                  <span className="text-xs text-accent-400 ml-auto flex items-center gap-1.5">
+                  <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
                     Generating...
                   </span>
@@ -299,7 +300,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
               </div>
             </div>
             <div className="p-5 max-h-[600px] overflow-y-auto">
-              <pre className="whitespace-pre-wrap font-mono text-sm text-surface-300 leading-relaxed">
+              <pre className="whitespace-pre-wrap font-mono text-sm text-surface-700 leading-relaxed">
                 {content}
                 {isRunning && <span className="typing-cursor" />}
               </pre>
@@ -308,12 +309,12 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
         ) : (
           <div className="h-full flex flex-col items-center justify-center animate-fade-in">
             <div className="relative mb-6">
-              <div className="absolute inset-0 bg-accent-500/20 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+              <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
               <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
-                <Zap className="h-10 w-10 text-surface-950" strokeWidth={2} />
+                <Zap className="h-10 w-10 text-white" strokeWidth={2} />
               </div>
             </div>
-            <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
+            <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
               Ready to analyze
             </h3>
             <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
@@ -338,43 +339,34 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
     { key: 'synthesisQuality', label: 'Synthesis', value: score.synthesisQuality },
   ]
 
-  const getScoreColor = (value: number) => {
-    if (value >= 4) return 'text-green-400'
-    if (value >= 3) return 'text-amber-400'
-    return 'text-red-400'
-  }
-
-  const getScoreBg = (value: number) => {
-    if (value >= 4) return 'bg-green-500/10'
-    if (value >= 3) return 'bg-amber-500/10'
-    return 'bg-red-500/10'
-  }
+  const getScoreColor = scoreColors.getText
+  const getScoreBg = scoreColors.getBg
 
   return (
     <div className="card-elevated p-5">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-surface-800 flex items-center justify-center">
-            <BarChart3 className="h-5 w-5 text-surface-400" />
+          <div className="icon-box icon-box-sm">
+            <BarChart3 className="h-5 w-5 text-surface-500" />
           </div>
           <div>
-            <span className="font-display font-semibold text-surface-100">Quality Score</span>
+            <span className="font-display font-semibold text-surface-900">Quality Score</span>
             <div className="text-xs text-surface-500 mt-0.5">Analysis evaluation</div>
           </div>
         </div>
         <div className="text-right">
           <div className={`text-3xl font-display font-bold ${getRatingColor(score.total)}`}>
-            {score.total}<span className="text-lg text-surface-600">/35</span>
+            {score.total}<span className="text-lg text-surface-400">/35</span>
           </div>
           <span
             className={`inline-block px-2.5 py-1 rounded-full text-xs font-medium mt-1 ${
               score.total >= 32
-                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                ? 'bg-green-50 text-green-700 border border-green-200'
                 : score.total >= 25
-                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200'
                 : score.total >= 18
-                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
             }`}
           >
             {getRatingFromScore(score.total)}
@@ -394,7 +386,7 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
       </div>
 
       {score.commentary && (
-        <p className="text-sm text-surface-400 border-t border-surface-800 pt-4 leading-relaxed">
+        <p className="text-sm text-surface-600 border-t border-surface-200 pt-4 leading-relaxed">
           {score.commentary}
         </p>
       )}

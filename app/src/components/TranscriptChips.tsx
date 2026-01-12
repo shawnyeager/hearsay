@@ -69,9 +69,9 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
       <div className="flex flex-wrap items-center gap-2">
         {/* Summary mode when all selected */}
         {showSummary ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-500/10 border border-accent-500/20">
-            <CheckCircle2 className="h-4 w-4 text-accent-500" />
-            <span className="text-sm text-accent-300">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-100 border border-accent-200">
+            <CheckCircle2 className="h-4 w-4 text-accent-600" />
+            <span className="text-sm text-accent-700">
               {transcripts.length} transcripts selected
             </span>
           </div>
@@ -80,14 +80,14 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
           selectedTranscripts.map((transcript) => (
             <div
               key={transcript.id}
-              className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-500/15 border border-accent-500/30 text-accent-300 text-sm animate-scale-in"
+              className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-100 border border-accent-200 text-accent-700 text-sm animate-scale-in"
             >
               <span className="truncate max-w-[120px]" title={transcript.name}>
                 {transcript.name}
               </span>
               <button
                 onClick={(e) => removeFromSelection(transcript.id, e)}
-                className="p-0.5 rounded hover:bg-accent-500/20 transition-colors"
+                className="p-0.5 rounded hover:bg-accent-200 transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -99,7 +99,7 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
         {transcripts.length > 0 && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-surface-500 hover:text-surface-300 hover:bg-surface-800/50 transition-all"
+            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-surface-500 hover:text-surface-700 hover:bg-surface-100 transition-all"
           >
             {expanded ? (
               <>
@@ -120,14 +120,14 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
 
       {/* Expanded drawer */}
       {expanded && (
-        <div className="mt-3 p-4 rounded-xl bg-surface-900/80 border border-surface-800 animate-slide-down">
+        <div className="mt-3 p-4 rounded-xl bg-white border border-surface-200 animate-slide-down">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-medium text-surface-400 uppercase tracking-wide">
+            <span className="text-xs font-medium text-surface-500 uppercase tracking-wide">
               All Transcripts
             </span>
             <button
               onClick={selectAll}
-              className="text-xs font-medium text-surface-500 hover:text-accent-400 transition-colors"
+              className="text-xs font-medium text-surface-500 hover:text-accent-600 transition-colors"
             >
               {selectedIds.size === transcripts.length ? 'Deselect all' : 'Select all'}
             </button>
@@ -176,8 +176,8 @@ function TranscriptRow({
       className={`
         group flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all
         ${isSelected
-          ? 'bg-accent-500/10 ring-1 ring-accent-500/20'
-          : 'hover:bg-surface-800/50'
+          ? 'bg-accent-100 ring-1 ring-accent-200'
+          : 'hover:bg-surface-100'
         }
       `}
     >
@@ -186,27 +186,27 @@ function TranscriptRow({
         {isSelected ? (
           <CheckCircle2 className="h-4 w-4 text-accent-500" />
         ) : (
-          <Circle className="h-4 w-4 text-surface-600 group-hover:text-surface-500 transition-colors" />
+          <Circle className="h-4 w-4 text-surface-400 group-hover:text-surface-500 transition-colors" />
         )}
       </div>
 
       {/* Icon */}
-      <FileText className="h-4 w-4 text-surface-500 flex-shrink-0" />
+      <FileText className="h-4 w-4 text-surface-400 flex-shrink-0" />
 
       {/* Name */}
-      <span className="flex-1 text-sm text-surface-300 truncate min-w-0">
+      <span className="flex-1 text-sm text-surface-700 truncate min-w-0">
         {transcript.name}
       </span>
 
       {/* Word count */}
-      <span className="text-xs text-surface-600 flex-shrink-0">
+      <span className="text-xs text-surface-500 flex-shrink-0">
         {transcript.content.split(/\s+/).length.toLocaleString()} words
       </span>
 
       {/* Actions */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
-          className="p-1 rounded text-surface-500 hover:text-surface-200 hover:bg-surface-700 transition-colors"
+          className="p-1 rounded text-surface-400 hover:text-surface-700 hover:bg-surface-200 transition-colors"
           onClick={(e) => {
             e.stopPropagation()
             onEdit()
@@ -215,7 +215,7 @@ function TranscriptRow({
           <Edit2 className="h-3.5 w-3.5" />
         </button>
         <button
-          className="p-1 rounded text-surface-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+          className="p-1 rounded text-surface-400 hover:text-red-600 hover:bg-red-50 transition-colors"
           onClick={onDelete}
         >
           <Trash2 className="h-3.5 w-3.5" />

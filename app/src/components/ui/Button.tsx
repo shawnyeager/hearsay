@@ -16,27 +16,27 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium',
           'transition-all duration-200 ease-out',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-950',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-100',
           'disabled:pointer-events-none disabled:opacity-40',
           'active:scale-[0.97]',
           {
-            // Primary - strong amber accent
-            'bg-gradient-to-b from-accent-500 to-accent-600 text-surface-950 font-semibold shadow-md shadow-accent-500/20 hover:from-accent-400 hover:to-accent-500 hover:shadow-lg hover:shadow-accent-500/30':
+            // Primary - warm coral gradient
+            'bg-gradient-to-b from-accent-500 to-accent-600 text-white font-semibold shadow-md shadow-accent-500/20 hover:from-accent-400 hover:to-accent-500 hover:shadow-lg hover:shadow-accent-500/25':
               variant === 'default',
-            // Secondary - subtle surface
-            'bg-surface-800 text-surface-200 border border-surface-700 hover:bg-surface-700 hover:text-surface-100 hover:border-surface-600':
+            // Secondary - warm surface
+            'bg-surface-200 text-surface-700 border border-surface-300 hover:bg-surface-300 hover:text-surface-800 hover:border-surface-400':
               variant === 'secondary',
             // Outline - bordered
-            'border border-surface-700 bg-transparent text-surface-300 hover:bg-surface-800/50 hover:text-surface-100 hover:border-surface-600':
+            'border border-surface-300 bg-transparent text-surface-700 hover:bg-surface-100 hover:text-surface-800 hover:border-surface-400':
               variant === 'outline',
             // Ghost - minimal
-            'text-surface-400 hover:bg-surface-800/50 hover:text-surface-200':
+            'text-surface-600 hover:bg-surface-100 hover:text-surface-800':
               variant === 'ghost',
             // Destructive - danger
             'bg-gradient-to-b from-red-500 to-red-600 text-white font-semibold shadow-md shadow-red-500/20 hover:from-red-400 hover:to-red-500':
               variant === 'destructive',
-            // Accent - glowing
-            'bg-gradient-to-b from-accent-500 to-accent-600 text-surface-950 font-semibold glow-accent hover:from-accent-400 hover:to-accent-500':
+            // Accent - glowing warm
+            'bg-gradient-to-b from-accent-500 to-accent-600 text-white font-semibold glow-accent hover:from-accent-400 hover:to-accent-500':
               variant === 'accent',
           },
           {
