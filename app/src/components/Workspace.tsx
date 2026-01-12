@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { Plus, Play, Square, ChevronDown, ChevronUp, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { useAnalyses } from '@/contexts/AnalysisContext'
-import { SetupCard } from './SetupCard'
+import { APIKeyPrompt } from './APIKeyPrompt'
+import { WelcomePanel } from './WelcomePanel'
 import { TranscriptChips } from './TranscriptChips'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
@@ -17,7 +19,7 @@ interface WorkspaceProps {
 }
 
 export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
-  const { settings, hasValidApiKey, hasCompletedSetup, getCurrentProviderConfig, setSelectedModel } = useSettings()
+  const { settings, hasValidApiKey, getCurrentProviderConfig, setSelectedModel } = useSettings()
   const { transcripts } = useTranscripts()
   const { addAnalysis } = useAnalyses()
 
@@ -42,6 +44,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
   const [error, setError] = useState<string | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [showAPIPrompt, setShowAPIPrompt] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const currentConfig = getCurrentProviderConfig()
@@ -68,6 +71,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
   const handleRun = useCallback(async () => {
     if (selectedTranscripts.length === 0) return
 
+    // Show API key prompt if not configured
+    if (!hasValidApiKey) {
+      setShowAPIPrompt(true)
+      return
+    }
+
     setIsRunning(true)
     setContent('')
     setScore(null)
@@ -92,55 +101,71 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
           onToken: (token) => setContent((prev) => prev + token),
           onComplete: async (fullText) => {
             setIsRunning(false)
-            await addAnalysis({
-              transcriptIds: Array.from(selectedIds),
-              variant,
-              providerId: settings.selectedProvider,
-              model: settings.selectedModel,
-              content: fullText,
-              score: null,
-            })
+
+            // Auto-score the analysis
+            setIsScoring(true)
+            try {
+              const scoreResult = await scoreAnalysis(config, fullText)
+              setScore(scoreResult)
+              await addAnalysis({
+                transcriptIds: Array.from(selectedIds),
+                variant,
+                providerId: settings.selectedProvider,
+                model: settings.selectedModel,
+                content: fullText,
+                score: {
+                  themeConcreteness: scoreResult.themeConcreteness,
+                  normalizationQuality: scoreResult.normalizationQuality,
+                  quantitativeRigor: scoreResult.quantitativeRigor,
+                  rankingValidity: scoreResult.rankingValidity,
+                  attributionAccuracy: scoreResult.attributionAccuracy,
+                  evidenceGrounding: scoreResult.evidenceGrounding,
+                  synthesisQuality: scoreResult.synthesisQuality,
+                  total: scoreResult.total,
+                },
+              })
+            } catch {
+              // Scoring failed, save without score
+              await addAnalysis({
+                transcriptIds: Array.from(selectedIds),
+                variant,
+                providerId: settings.selectedProvider,
+                model: settings.selectedModel,
+                content: fullText,
+                score: null,
+              })
+            } finally {
+              setIsScoring(false)
+            }
           },
           onError: (err) => {
-            setError(err.message)
+            // If auth error, show API key prompt instead of error
+            const msg = err.message.toLowerCase()
+            if (msg.includes('auth') || msg.includes('credentials') || msg.includes('401') || msg.includes('unauthorized')) {
+              setShowAPIPrompt(true)
+            } else {
+              setError(err.message)
+            }
             setIsRunning(false)
           },
         },
         abortControllerRef.current.signal
       )
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed')
+      const message = err instanceof Error ? err.message : 'Analysis failed'
+      const msgLower = message.toLowerCase()
+      if (msgLower.includes('auth') || msgLower.includes('credentials') || msgLower.includes('401') || msgLower.includes('unauthorized')) {
+        setShowAPIPrompt(true)
+      } else {
+        setError(message)
+      }
       setIsRunning(false)
     }
-  }, [selectedTranscripts, selectedIds, variant, settings, addAnalysis])
+  }, [selectedTranscripts, selectedIds, variant, settings, addAnalysis, hasValidApiKey])
 
   const handleStop = () => {
     abortControllerRef.current?.abort()
     setIsRunning(false)
-  }
-
-  const handleScore = async () => {
-    if (!content) return
-
-    setIsScoring(true)
-    setError(null)
-
-    const providerSettings = settings.providers[settings.selectedProvider]
-    const config = {
-      providerId: settings.selectedProvider,
-      apiKey: providerSettings.apiKey,
-      baseUrl: providerSettings.baseUrl || PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl,
-      model: settings.selectedModel,
-    }
-
-    try {
-      const result = await scoreAnalysis(config, content)
-      setScore(result)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Scoring failed')
-    } finally {
-      setIsScoring(false)
-    }
   }
 
   const handleExport = () => {
@@ -157,39 +182,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
     URL.revokeObjectURL(url)
   }
 
-  // Show setup card if not configured
-  if (!hasCompletedSetup || !hasValidApiKey) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8">
-        <SetupCard />
-      </div>
-    )
-  }
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
-      {/* Control Bar */}
+      {/* Control Bar - only show when there are transcripts */}
+      {transcripts.length > 0 && (
       <div className="flex-shrink-0 px-6 py-4 border-b border-surface-800/60 bg-surface-950/50">
         <div className="flex flex-wrap items-center gap-4">
-          {/* Model Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-surface-500 uppercase tracking-wide">Model</span>
-            <Select value={settings.selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {currentConfig.models.map((model) => (
-                  <SelectItem key={model.id} value={model.id}>
-                    {model.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="h-6 w-px bg-surface-800" />
-
           {/* Transcripts */}
           <div className="flex-1 flex items-center gap-3 min-w-0">
             <Button size="sm" onClick={() => setAddDialogOpen(true)}>
@@ -201,8 +199,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
               onSelectionChange={handleSelectionChange}
             />
           </div>
-
-          <div className="h-6 w-px bg-surface-800" />
 
           {/* Advanced Toggle */}
           <button
@@ -235,27 +231,24 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
         {showAdvanced && (
           <div className="mt-4 pt-4 border-t border-surface-800/40 flex items-center gap-4 animate-slide-down">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-surface-500">Style</span>
-              <Select
-                value={variant}
-                onValueChange={(v) => setVariant(v as AnalysisVariant)}
-                disabled={isRunning}
-              >
-                <SelectTrigger className="w-[140px]">
+              <span className="text-xs font-medium text-surface-500">Model</span>
+              <Select value={settings.selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="core">Standard</SelectItem>
-                  <SelectItem value="with-quotes">Quote-Heavy</SelectItem>
+                  {currentConfig.models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <span className="text-xs text-surface-600">
-              Quote-Heavy includes more direct quotes from interviews
-            </span>
           </div>
         )}
       </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -332,11 +325,9 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
                   )}
                 </div>
               </div>
-              <div className="p-5 max-h-[500px] overflow-y-auto">
-                <pre className="whitespace-pre-wrap font-mono text-sm text-surface-300 leading-relaxed">
-                  {content}
-                  {isRunning && <span className="typing-cursor" />}
-                </pre>
+              <div className="p-5 max-h-[500px] overflow-y-auto prose-analysis">
+                <ReactMarkdown>{content}</ReactMarkdown>
+                {isRunning && <span className="typing-cursor" />}
               </div>
             </div>
 
@@ -346,14 +337,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
             {/* Post-Analysis Actions */}
             {!isRunning && content && (
               <div className="flex items-center gap-3 animate-fade-in">
-                <Button variant="outline" onClick={handleScore} disabled={isScoring}>
-                  {isScoring ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                  )}
-                  Score Quality
-                </Button>
+                {isScoring && (
+                  <div className="flex items-center gap-2 text-sm text-surface-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Scoring quality...
+                  </div>
+                )}
                 <Button variant="outline" onClick={handleExport}>
                   <Download className="h-4 w-4 mr-2" />
                   Export
@@ -361,52 +350,35 @@ export function Workspace({ loadedAnalysis, onClearLoaded }: WorkspaceProps) {
               </div>
             )}
           </div>
+        ) : transcripts.length === 0 ? (
+          <WelcomePanel onAddClick={() => setAddDialogOpen(true)} />
         ) : (
-          <EmptyState
-            hasTranscripts={transcripts.length > 0}
-            hasSelection={selectedTranscripts.length > 0}
-            onAddClick={() => setAddDialogOpen(true)}
-          />
+          <EmptyState hasSelection={selectedTranscripts.length > 0} />
         )}
       </div>
 
-      <AddTranscriptDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+      <AddTranscriptDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onTranscriptsAdded={(ids) => {
+          const newSelection = new Set([...selectedIds, ...ids])
+          handleSelectionChange(newSelection)
+          // First-run flow: immediately prompt for API key
+          if (!hasValidApiKey) {
+            setShowAPIPrompt(true)
+          }
+        }}
+      />
+      <APIKeyPrompt
+        open={showAPIPrompt}
+        onOpenChange={setShowAPIPrompt}
+        onSuccess={handleRun}
+      />
     </div>
   )
 }
 
-function EmptyState({
-  hasTranscripts,
-  hasSelection,
-  onAddClick,
-}: {
-  hasTranscripts: boolean
-  hasSelection: boolean
-  onAddClick: () => void
-}) {
-  if (!hasTranscripts) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-        <div className="relative mb-6">
-          <div className="absolute inset-0 bg-accent-500/10 rounded-3xl blur-3xl scale-150" />
-          <div className="relative w-20 h-20 rounded-2xl bg-surface-900 border border-surface-800 flex items-center justify-center">
-            <Plus className="h-10 w-10 text-surface-500" />
-          </div>
-        </div>
-        <h3 className="font-display text-xl font-semibold text-surface-100 mb-2">
-          Add your first transcript
-        </h3>
-        <p className="text-sm text-surface-500 text-center max-w-sm mb-6 leading-relaxed">
-          Upload or paste an interview transcript to start extracting insights.
-        </p>
-        <Button onClick={onAddClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Transcript
-        </Button>
-      </div>
-    )
-  }
-
+function EmptyState({ hasSelection }: { hasSelection: boolean }) {
   if (!hasSelection) {
     return (
       <div className="h-full flex flex-col items-center justify-center animate-fade-in">

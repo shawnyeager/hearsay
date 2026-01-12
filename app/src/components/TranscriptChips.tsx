@@ -60,27 +60,40 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
     )
   }
 
+  const allSelected = selectedIds.size === transcripts.length
+  const showSummary = allSelected && transcripts.length > 3
+
   return (
     <div className="flex-1 min-w-0">
       {/* Compact chip row */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Selected chips */}
-        {selectedTranscripts.map((transcript) => (
-          <div
-            key={transcript.id}
-            className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-500/15 border border-accent-500/30 text-accent-300 text-sm animate-scale-in"
-          >
-            <span className="truncate max-w-[120px]" title={transcript.name}>
-              {transcript.name}
+        {/* Summary mode when all selected */}
+        {showSummary ? (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-500/10 border border-accent-500/20">
+            <CheckCircle2 className="h-4 w-4 text-accent-500" />
+            <span className="text-sm text-accent-300">
+              {transcripts.length} transcripts selected
             </span>
-            <button
-              onClick={(e) => removeFromSelection(transcript.id, e)}
-              className="p-0.5 rounded hover:bg-accent-500/20 transition-colors"
-            >
-              <X className="h-3 w-3" />
-            </button>
           </div>
-        ))}
+        ) : (
+          /* Individual chips when not all selected */
+          selectedTranscripts.map((transcript) => (
+            <div
+              key={transcript.id}
+              className="group flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-500/15 border border-accent-500/30 text-accent-300 text-sm animate-scale-in"
+            >
+              <span className="truncate max-w-[120px]" title={transcript.name}>
+                {transcript.name}
+              </span>
+              <button
+                onClick={(e) => removeFromSelection(transcript.id, e)}
+                className="p-0.5 rounded hover:bg-accent-500/20 transition-colors"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))
+        )}
 
         {/* Expand/collapse toggle */}
         {transcripts.length > 0 && (
@@ -96,7 +109,7 @@ export function TranscriptChips({ selectedIds, onSelectionChange }: TranscriptCh
             ) : (
               <>
                 <ChevronDown className="h-3.5 w-3.5" />
-                {unselectedTranscripts.length > 0
+                {showSummary ? 'Manage' : unselectedTranscripts.length > 0
                   ? `${unselectedTranscripts.length} more`
                   : 'Manage'}
               </>
