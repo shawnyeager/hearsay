@@ -2,6 +2,18 @@
 
 LLM prompts and methodology for turning customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
 
+## Web App
+
+A browser-based interface is available in the `/app` directory. BYOM (bring your own model) — supports OpenRouter, OpenAI, and Maple AI.
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+All data stays in your browser (IndexedDB). Your API key is stored locally and only used to authenticate with your chosen LLM provider.
+
 ## What This Does
 
 Analyzes interview transcripts to produce:
@@ -28,6 +40,7 @@ The agent reads all transcripts, applies the methodology, and produces a report 
 
 | File | Purpose |
 |------|---------|
+| `app/` | Web app for browser-based analysis (BYOM) |
 | `INTERVIEW_script.md` | 20-minute interview script optimized for later analysis |
 | `PROMPT_core.md` | Core methodology: ingest → extract → normalize → count → synthesize |
 | `PROMPT_with_quotes.md` | Quote-heavy variant for stakeholder presentations |

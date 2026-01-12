@@ -1,2 +1,9 @@
 # Analysis outputs (may contain PII from transcripts)
 output/
+transcripts/
+
+# App build artifacts
+app/node_modules/
+app/dist/
+app/.env
+app/.env.local
