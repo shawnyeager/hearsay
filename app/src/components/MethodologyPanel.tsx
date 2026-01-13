@@ -175,11 +175,13 @@ function FormattedContent({ content }: { content: string }) {
   let currentList: string[] = []
   let inCodeBlock = false
   let codeContent: string[] = []
+  let keyCounter = 0
 
   const flushList = () => {
     if (currentList.length > 0) {
+      const key = `list-${keyCounter++}`
       elements.push(
-        <ul key={elements.length} className="list-disc list-inside space-y-1 my-2">
+        <ul key={key} className="list-disc list-inside space-y-1 my-2">
           {currentList.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
@@ -191,8 +193,9 @@ function FormattedContent({ content }: { content: string }) {
 
   const flushCode = () => {
     if (codeContent.length > 0) {
+      const key = `code-${keyCounter++}`
       elements.push(
-        <pre key={elements.length} className="bg-surface-100 rounded-lg p-3 my-2 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+        <pre key={key} className="bg-surface-100 rounded-lg p-3 my-2 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
           {codeContent.join('\n')}
         </pre>
       )

@@ -26,7 +26,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col texture-noise">
+    <div className="h-screen flex flex-col overflow-hidden texture-noise">
       <Header
         onHistoryClick={() => setHistoryOpen(!historyOpen)}
         onGuideClick={() => setGuideOpen(true)}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Play, Square, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { Plus, Play, Square, ChevronLeft, ChevronRight, Eye, RotateCcw } from 'lucide-react'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
 import { PRESETS } from '@/prompts/presets'
@@ -11,9 +11,11 @@ interface SetupSidebarProps {
   variant: AnalysisVariant
   onVariantChange: (variant: AnalysisVariant) => void
   hasRunAnalysis: boolean
+  hasContent: boolean
   isRunning: boolean
   onRun: () => void
   onStop: () => void
+  onStartNew: () => void
   onAddClick: () => void
   onViewMethodology: () => void
 }
@@ -24,9 +26,11 @@ export function SetupSidebar({
   variant,
   onVariantChange,
   hasRunAnalysis,
+  hasContent,
   isRunning,
   onRun,
   onStop,
+  onStartNew,
   onAddClick,
   onViewMethodology,
 }: SetupSidebarProps) {
@@ -66,7 +70,7 @@ export function SetupSidebar({
   }
 
   return (
-    <div className="w-72 flex-shrink-0 border-r border-surface-200 bg-white/50 flex flex-col">
+    <div className="w-72 h-full flex-shrink-0 border-r border-surface-200 bg-white/50 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-surface-200">
         <h2 className="font-display font-semibold text-surface-900">Transcripts</h2>
@@ -124,7 +128,7 @@ export function SetupSidebar({
                     type="checkbox"
                     checked={selectedIds.has(transcript.id)}
                     onChange={() => toggleTranscript(transcript.id)}
-                    className="mt-0.5 h-4 w-4 rounded border-surface-300 text-accent-600 focus:ring-accent-500"
+                    className="mt-0.5 flex-shrink-0"
                   />
                   <span className="text-sm text-surface-700 leading-snug">
                     {transcript.name}
@@ -191,14 +195,21 @@ export function SetupSidebar({
             Stop
           </Button>
         ) : (
-          <Button
-            className="w-full"
-            onClick={onRun}
-            disabled={selectedIds.size === 0}
-          >
-            <Play className="h-4 w-4 mr-2" />
-            Run Analysis
-          </Button>
+          <div className="flex gap-2">
+            {hasContent && (
+              <Button variant="outline" onClick={onStartNew} title="Start new analysis">
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              className="flex-1"
+              onClick={onRun}
+              disabled={selectedIds.size === 0}
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Run Analysis
+            </Button>
+          </div>
         )}
       </div>
     </div>

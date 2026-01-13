@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus } from 'lucide-react'
+import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap } from 'lucide-react'
+import { HearsayLogo } from './HearsayLogo'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { useAnalyses } from '@/contexts/AnalysisContext'
@@ -228,9 +229,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
         variant={variant}
         onVariantChange={setVariant}
         hasRunAnalysis={hasRunAnalysis}
+        hasContent={Boolean(content)}
         isRunning={isRunning}
         onRun={handleRun}
         onStop={handleStop}
+        onStartNew={handleStartNew}
         onAddClick={() => setAddDialogOpen(true)}
         onViewMethodology={() => setShowMethodology(true)}
       />
@@ -239,15 +242,14 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Error Message */}
         {error && (
-          <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
+          <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 animate-slide-down">
             <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-red-700">Error</p>
-                <p className="text-sm text-red-600 mt-0.5">{error}</p>
+                <p className="text-sm font-medium text-amber-800">Connection interrupted</p>
+                <p className="text-sm text-amber-700 mt-0.5">{error}</p>
               </div>
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => {
                   setError(null)
@@ -392,11 +394,8 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
 function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; onGuideClick?: () => void }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
-        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
-          <Zap className="h-10 w-10 text-white" strokeWidth={2} />
-        </div>
+      <div className="mb-6">
+        <HearsayLogo size="lg" className="w-20 h-20" />
       </div>
       <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         Welcome to Hearsay
@@ -422,11 +421,8 @@ function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; on
 function EmptyState({ message, description }: { message: string; description: string }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-surface-200/50 rounded-3xl blur-2xl scale-150" />
-        <div className="relative w-20 h-20 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
-          <Zap className="h-10 w-10 text-surface-400" />
-        </div>
+      <div className="mb-6 opacity-40">
+        <HearsayLogo size="lg" className="w-20 h-20" />
       </div>
       <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         {message}
@@ -441,11 +437,8 @@ function EmptyState({ message, description }: { message: string; description: st
 function ReadyState({ count }: { count: number }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
-        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
-          <Zap className="h-10 w-10 text-white" strokeWidth={2} />
-        </div>
+      <div className="mb-6">
+        <HearsayLogo size="lg" className="w-20 h-20" />
       </div>
       <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         Ready to analyze

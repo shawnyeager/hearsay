@@ -8,6 +8,9 @@ import {
   FileText,
   Zap,
   AlertCircle,
+} from 'lucide-react'
+import { HearsayLogo } from './HearsayLogo'
+import {
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react'
@@ -301,11 +304,8 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
-              <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
-                <Zap className="h-10 w-10 text-white" strokeWidth={2} />
-              </div>
+            <div className="mb-6">
+              <HearsayLogo size="lg" className="w-20 h-20" />
             </div>
             <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
               Ready to analyze
