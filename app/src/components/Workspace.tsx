@@ -1,19 +1,18 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Plus, Play, Square, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock, Eye } from 'lucide-react'
+import { Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { useAnalyses } from '@/contexts/AnalysisContext'
 import { APIKeyPrompt } from './APIKeyPrompt'
-import { WelcomePanel } from './WelcomePanel'
-import { TranscriptChips } from './TranscriptChips'
+import { SetupSidebar } from './SetupSidebar'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { MethodologyPanel } from './MethodologyPanel'
 import { ModeDiscoveryCard } from './ModeDiscoveryCard'
-import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
-import { PRESETS, getPreset } from '@/prompts/presets'
+import { getPreset } from '@/prompts/presets'
 import type { Analysis, AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
@@ -30,7 +29,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const { addAnalysis } = useAnalyses()
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
-    // Restore from localStorage
     const stored = localStorage.getItem('selected-transcripts')
     if (stored) {
       try {
@@ -42,7 +40,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     return new Set()
   })
 
-  // Track if user has ever run an analysis (for progressive disclosure)
   const [hasRunAnalysis, setHasRunAnalysis] = useState(() => {
     return localStorage.getItem('hearsay-has-run-analysis') === 'true'
   })
@@ -62,8 +59,8 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const currentPreset = getPreset(variant)
-
   const selectedTranscripts = transcripts.filter((t) => selectedIds.has(t.id))
+  const isViewingHistory = Boolean(loadedAnalysis)
 
   // Load historical analysis when provided
   useEffect(() => {
@@ -75,25 +72,38 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     }
   }, [loadedAnalysis])
 
-  // Open add dialog when triggered from parent (e.g., from guide panel)
+  // Open add dialog when triggered from parent
   useEffect(() => {
     if (triggerAddDialog && triggerAddDialog > 0) {
       setAddDialogOpen(true)
     }
   }, [triggerAddDialog])
 
-  const isViewingHistory = Boolean(loadedAnalysis)
+  // Clean up stale selected IDs when transcripts change
+  useEffect(() => {
+    const validIds = new Set(transcripts.map(t => t.id))
+    const cleanedIds = new Set(Array.from(selectedIds).filter(id => validIds.has(id)))
+    if (cleanedIds.size !== selectedIds.size) {
+      setSelectedIds(cleanedIds)
+      localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(cleanedIds)))
+    }
+  }, [transcripts, selectedIds])
 
-  // Persist selection to localStorage
   const handleSelectionChange = useCallback((ids: Set<string>) => {
     setSelectedIds(ids)
     localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(ids)))
   }, [])
 
+  const handleStartNew = useCallback(() => {
+    setContent('')
+    setScore(null)
+    setError(null)
+    onClearLoaded?.()
+  }, [onClearLoaded])
+
   const handleRun = useCallback(async () => {
     if (selectedTranscripts.length === 0) return
 
-    // Show API key prompt if not configured
     if (!hasValidApiKey) {
       setShowAPIPrompt(true)
       return
@@ -124,13 +134,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
           onComplete: async (fullText) => {
             setIsRunning(false)
 
-            // Track first-time users for progressive disclosure
             if (!hasRunAnalysis) {
               localStorage.setItem('hearsay-has-run-analysis', 'true')
               setHasRunAnalysis(true)
             }
 
-            // Auto-score the analysis
             setIsScoring(true)
             try {
               const scoreResult = await scoreAnalysis(config, fullText)
@@ -153,7 +161,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                 },
               })
             } catch {
-              // Scoring failed, save without score
               await addAnalysis({
                 transcriptIds: Array.from(selectedIds),
                 variant,
@@ -167,7 +174,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
             }
           },
           onError: (err) => {
-            // If auth error, show API key prompt instead of error
             const msg = err.message.toLowerCase()
             if (msg.includes('auth') || msg.includes('credentials') || msg.includes('401') || msg.includes('unauthorized')) {
               setShowAPIPrompt(true)
@@ -198,7 +204,6 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
 
   const handleExport = () => {
     if (!content) return
-
     const blob = new Blob([content], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -211,241 +216,163 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden animate-fade-in">
-      {/* Control Bar - only show when there are transcripts */}
-      {transcripts.length > 0 && (
-      <div className="flex-shrink-0 px-6 py-4 border-b border-surface-200 bg-white/50">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Transcripts */}
-          <div className="flex-1 flex items-center gap-3 min-w-0">
-            <Button size="sm" onClick={() => setAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-1.5" />
-              Add
-            </Button>
-            <TranscriptChips
-              selectedIds={selectedIds}
-              onSelectionChange={handleSelectionChange}
-            />
-          </div>
+    <div className="flex-1 flex overflow-hidden">
+      {/* Setup Sidebar */}
+      <SetupSidebar
+        selectedIds={selectedIds}
+        onSelectionChange={handleSelectionChange}
+        variant={variant}
+        onVariantChange={setVariant}
+        hasRunAnalysis={hasRunAnalysis}
+        isRunning={isRunning}
+        onRun={handleRun}
+        onStop={handleStop}
+        onAddClick={() => setAddDialogOpen(true)}
+        onViewMethodology={() => setShowMethodology(true)}
+      />
 
-          {/* Methodology Selector - only show for returning users */}
-          {hasRunAnalysis && (
-            <div className="flex items-center gap-2">
-              <Select
-                value={variant}
-                onValueChange={(v) => setVariant(v as AnalysisVariant)}
-                disabled={isRunning}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PRESETS.map((preset) => (
-                    <SelectItem key={preset.id} value={preset.id}>
-                      <div className="flex flex-col items-start">
-                        <div className="flex items-center gap-2">
-                          <span>{preset.name}</span>
-                          {preset.id === 'standard' && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent-100 text-accent-700">
-                              Recommended
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-surface-500">{preset.description}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <button
-                onClick={() => setShowMethodology(true)}
-                className="p-2 rounded-lg text-surface-500 hover:text-surface-700 hover:bg-surface-100 transition-colors"
-                title="View methodology"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            {/* New - always visible, clears everything for fresh start */}
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setContent('')
-                setScore(null)
-                setError(null)
-                handleSelectionChange(new Set())
-              }}
-              className="text-surface-600"
-            >
-              <RotateCcw className="h-4 w-4 mr-1.5" />
-              New
-            </Button>
-
-            {/* Run/Stop Button */}
-            {isRunning ? (
-              <Button variant="destructive" onClick={handleStop}>
-                <Square className="h-4 w-4 mr-2" />
-                Stop
-              </Button>
-            ) : (
+      {/* Main Results Panel */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Error Message */}
+        {error && (
+          <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-red-700">Error</p>
+                <p className="text-sm text-red-600 mt-0.5">{error}</p>
+              </div>
               <Button
-                onClick={handleRun}
-                disabled={selectedTranscripts.length === 0}
-                className="min-w-[140px]"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setError(null)
+                  handleRun()
+                }}
+                className="flex-shrink-0"
               >
-                <Play className="h-4 w-4 mr-2" />
-                Run Analysis
+                <RotateCcw className="h-4 w-4 mr-1.5" />
+                Retry
               </Button>
-            )}
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-red-700">Error</p>
-              <p className="text-sm text-red-600 mt-0.5">{error}</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setError(null)
-                handleRun()
-              }}
-              className="flex-shrink-0"
-            >
-              <RotateCcw className="h-4 w-4 mr-1.5" />
-              Retry
-            </Button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {content || isRunning ? (
-          <div className="space-y-4">
-            {/* Historical Analysis Banner */}
-            {isViewingHistory && (
-              <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-4 w-4 text-surface-500" />
-                  <div>
-                    <span className="text-sm font-medium text-surface-700">
-                      Viewing historical analysis
-                    </span>
-                    <span className="text-xs text-surface-500 ml-2">
-                      {new Date(loadedAnalysis!.createdAt).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      })}
-                    </span>
+        {/* Results Area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {content || isRunning ? (
+            <div className="space-y-4 max-w-4xl">
+              {/* Historical Analysis Banner */}
+              {isViewingHistory && (
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-surface-500" />
+                    <div>
+                      <span className="text-sm font-medium text-surface-700">
+                        Viewing historical analysis
+                      </span>
+                      <span className="text-xs text-surface-500 ml-2">
+                        {new Date(loadedAnalysis!.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    onClearLoaded?.()
-                    setContent('')
-                    setScore(null)
-                  }}
-                >
-                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                  New Analysis
-                </Button>
-              </div>
-            )}
+              )}
 
-            {/* Analysis Output */}
-            <div className="card-elevated overflow-hidden animate-scale-in">
-              <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Zap className="h-4 w-4 text-accent-500" />
+              {/* Analysis Output */}
+              <div className="card-elevated overflow-hidden animate-scale-in">
+                <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <Zap className="h-4 w-4 text-accent-500" />
+                      {isRunning && (
+                        <div className="absolute inset-0 animate-ping">
+                          <Zap className="h-4 w-4 text-accent-500 opacity-50" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-surface-700">
+                      {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
+                    </span>
                     {isRunning && (
-                      <div className="absolute inset-0 animate-ping">
-                        <Zap className="h-4 w-4 text-accent-500 opacity-50" />
+                      <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
+                        Generating...
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="p-5 overflow-y-auto prose-analysis">
+                  <ReactMarkdown>{content}</ReactMarkdown>
+                  {isRunning && <span className="typing-cursor" />}
+                </div>
+              </div>
+
+              {/* Score Card */}
+              {score && <ScoreCard score={score} />}
+
+              {/* Action Bar - Export and Start New */}
+              {!isRunning && content && (
+                <div className="flex items-center justify-between py-4 border-t border-surface-200 animate-fade-in">
+                  <div className="flex items-center gap-3">
+                    {isScoring && (
+                      <div className="flex items-center gap-2 text-sm text-surface-500">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Scoring quality...
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-medium text-surface-700">
-                    {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
-                  </span>
-                  {isRunning && (
-                    <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
-                      Generating...
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="p-5 overflow-y-auto prose-analysis">
-                <ReactMarkdown>{content}</ReactMarkdown>
-                {isRunning && <span className="typing-cursor" />}
-              </div>
-            </div>
-
-            {/* Score Card */}
-            {score && <ScoreCard score={score} />}
-
-            {/* Post-Analysis Actions */}
-            {!isRunning && content && (
-              <div className="flex items-center gap-3 animate-fade-in">
-                {isScoring && (
-                  <div className="flex items-center gap-2 text-sm text-surface-500">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Scoring quality...
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={handleExport}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                    <Button variant="ghost" onClick={handleStartNew}>
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Start New Analysis
+                    </Button>
                   </div>
-                )}
-                <Button variant="outline" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
-              </div>
-            )}
+                </div>
+              )}
 
-            {/* Mode Discovery - inline at end of content for first-time users */}
-            {!isRunning && content && !isViewingHistory && !hasSeenModeDiscovery && (
-              <ModeDiscoveryCard
-                onExplore={() => {
-                  localStorage.setItem('hearsay-seen-mode-discovery', 'true')
-                  setHasSeenModeDiscovery(true)
-                  setShowMethodology(true)
-                }}
-                onDismiss={() => {
-                  localStorage.setItem('hearsay-seen-mode-discovery', 'true')
-                  setHasSeenModeDiscovery(true)
-                }}
-              />
-            )}
-          </div>
-        ) : transcripts.length === 0 ? (
-          <WelcomePanel onAddClick={() => setAddDialogOpen(true)} onGuideClick={onGuideClick} />
-        ) : (
-          <EmptyState hasSelection={selectedTranscripts.length > 0} />
-        )}
+              {/* Mode Discovery - inline at end of content for first-time users */}
+              {!isRunning && content && !isViewingHistory && !hasSeenModeDiscovery && (
+                <ModeDiscoveryCard
+                  onExplore={() => {
+                    localStorage.setItem('hearsay-seen-mode-discovery', 'true')
+                    setHasSeenModeDiscovery(true)
+                    setShowMethodology(true)
+                  }}
+                  onDismiss={() => {
+                    localStorage.setItem('hearsay-seen-mode-discovery', 'true')
+                    setHasSeenModeDiscovery(true)
+                  }}
+                />
+              )}
+            </div>
+          ) : transcripts.length === 0 ? (
+            <WelcomeState onAddClick={() => setAddDialogOpen(true)} onGuideClick={onGuideClick} />
+          ) : selectedTranscripts.length === 0 ? (
+            <EmptyState message="Select transcripts" description="Check the transcripts you want to analyze in the sidebar, then click Run Analysis." />
+          ) : (
+            <ReadyState count={selectedTranscripts.length} />
+          )}
+        </div>
       </div>
 
+      {/* Dialogs */}
       <AddTranscriptDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onTranscriptsAdded={(ids) => {
           const newSelection = new Set([...selectedIds, ...ids])
           handleSelectionChange(newSelection)
-          // First-run flow: immediately prompt for API key
           if (!hasValidApiKey) {
             setShowAPIPrompt(true)
           }
@@ -465,26 +392,56 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   )
 }
 
-function EmptyState({ hasSelection }: { hasSelection: boolean }) {
-  if (!hasSelection) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-        <div className="relative mb-6">
-          <div className="absolute inset-0 bg-surface-200/50 rounded-3xl blur-2xl scale-150" />
-          <div className="relative w-20 h-20 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
-            <Zap className="h-10 w-10 text-surface-400" />
-          </div>
+function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; onGuideClick?: () => void }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center animate-fade-in">
+      <div className="relative mb-6">
+        <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
+          <Zap className="h-10 w-10 text-white" strokeWidth={2} />
         </div>
-        <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
-          Select transcripts to analyze
-        </h3>
-        <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
-          Click on transcript chips above to select which interviews to include in your analysis.
-        </p>
       </div>
-    )
-  }
+      <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
+        Welcome to Hearsay
+      </h3>
+      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed mb-6">
+        Turn customer interview transcripts into actionable product insights.
+      </p>
+      <div className="flex items-center gap-3">
+        <Button onClick={onAddClick}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Transcripts
+        </Button>
+        {onGuideClick && (
+          <Button variant="outline" onClick={onGuideClick}>
+            View Guide
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
 
+function EmptyState({ message, description }: { message: string; description: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center animate-fade-in">
+      <div className="relative mb-6">
+        <div className="absolute inset-0 bg-surface-200/50 rounded-3xl blur-2xl scale-150" />
+        <div className="relative w-20 h-20 rounded-2xl bg-white border border-surface-200 flex items-center justify-center">
+          <Zap className="h-10 w-10 text-surface-400" />
+        </div>
+      </div>
+      <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
+        {message}
+      </h3>
+      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
+        {description}
+      </p>
+    </div>
+  )
+}
+
+function ReadyState({ count }: { count: number }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
       <div className="relative mb-6">
@@ -497,7 +454,7 @@ function EmptyState({ hasSelection }: { hasSelection: boolean }) {
         Ready to analyze
       </h3>
       <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
-        Click "Run Analysis" to identify patterns across your selected transcripts.
+        {count} transcript{count !== 1 ? 's' : ''} selected. Click "Run Analysis" in the sidebar to start.
       </p>
     </div>
   )
