@@ -1,15 +1,14 @@
 import type { Transcript, AnalysisVariant, RubricScore } from '@/types'
 import type { LLMConfig, ChatMessage, StreamCallbacks } from './llm'
 import { streamChat, chat } from './llm'
-import { PROMPT_CORE } from '@/prompts/core'
-import { PROMPT_WITH_QUOTES } from '@/prompts/withQuotes'
+import { getPresetPrompt } from '@/prompts/presets'
 import { SCORING_PROMPT } from '@/prompts/rubric'
 
 export function buildAnalysisPrompt(
   transcripts: Transcript[],
   variant: AnalysisVariant
 ): ChatMessage[] {
-  const systemPrompt = variant === 'core' ? PROMPT_CORE : PROMPT_WITH_QUOTES
+  const systemPrompt = getPresetPrompt(variant)
 
   // Build transcript content
   const transcriptContent = transcripts

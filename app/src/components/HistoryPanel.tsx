@@ -15,9 +15,18 @@ export function HistoryPanel({ open, onClose, onSelect }: HistoryPanelProps) {
   const { transcripts } = useTranscripts()
 
   const getTranscriptNames = (ids: string[]) => {
-    return ids
-      .map((id) => transcripts.find((t) => t.id === id)?.name || 'Unknown')
-      .join(', ')
+    const names = ids
+      .map((id) => transcripts.find((t) => t.id === id)?.name)
+      .filter(Boolean)
+
+    if (names.length === 0) {
+      return `${ids.length} transcript${ids.length !== 1 ? 's' : ''}`
+    }
+    if (names.length < ids.length) {
+      const missing = ids.length - names.length
+      return `${names.join(', ')} (+${missing} more)`
+    }
+    return names.join(', ')
   }
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -154,7 +163,7 @@ function HistoryItem({
               })}
             </span>
             <span className="w-1 h-1 rounded-full bg-surface-300" />
-            <span>{analysis.variant === 'with-quotes' ? 'Quote-Heavy' : 'Standard'}</span>
+            <span className="capitalize">{analysis.variant.replace('-', ' ')}</span>
             <span className="w-1 h-1 rounded-full bg-surface-300" />
             <span className="truncate">{analysis.model.split('/').pop()}</span>
           </div>

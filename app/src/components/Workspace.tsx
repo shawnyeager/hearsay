@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Plus, Play, Square, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock } from 'lucide-react'
+import { Plus, Play, Square, Loader2, Zap, AlertCircle, Download, BarChart3, RotateCcw, Clock, Eye } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { useAnalyses } from '@/contexts/AnalysisContext'
@@ -8,9 +8,12 @@ import { APIKeyPrompt } from './APIKeyPrompt'
 import { WelcomePanel } from './WelcomePanel'
 import { TranscriptChips } from './TranscriptChips'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
-import { Button } from '@/components/ui'
+import { MethodologyPanel } from './MethodologyPanel'
+import { ModeDiscoveryCard } from './ModeDiscoveryCard'
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
+import { PRESETS, getPreset } from '@/prompts/presets'
 import type { Analysis, AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
@@ -39,7 +42,15 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     return new Set()
   })
 
-  const [variant, setVariant] = useState<AnalysisVariant>('core')
+  // Track if user has ever run an analysis (for progressive disclosure)
+  const [hasRunAnalysis, setHasRunAnalysis] = useState(() => {
+    return localStorage.getItem('hearsay-has-run-analysis') === 'true'
+  })
+  const [hasSeenModeDiscovery, setHasSeenModeDiscovery] = useState(() => {
+    return localStorage.getItem('hearsay-seen-mode-discovery') === 'true'
+  })
+
+  const [variant, setVariant] = useState<AnalysisVariant>('standard')
   const [isRunning, setIsRunning] = useState(false)
   const [isScoring, setIsScoring] = useState(false)
   const [content, setContent] = useState('')
@@ -47,7 +58,10 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const [error, setError] = useState<string | null>(null)
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [showAPIPrompt, setShowAPIPrompt] = useState(false)
+  const [showMethodology, setShowMethodology] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
+
+  const currentPreset = getPreset(variant)
 
   const selectedTranscripts = transcripts.filter((t) => selectedIds.has(t.id))
 
@@ -110,6 +124,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
           onComplete: async (fullText) => {
             setIsRunning(false)
 
+            // Track first-time users for progressive disclosure
+            if (!hasRunAnalysis) {
+              localStorage.setItem('hearsay-has-run-analysis', 'true')
+              setHasRunAnalysis(true)
+            }
+
             // Auto-score the analysis
             setIsScoring(true)
             try {
@@ -169,7 +189,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
       }
       setIsRunning(false)
     }
-  }, [selectedTranscripts, selectedIds, variant, settings, addAnalysis, hasValidApiKey])
+  }, [selectedTranscripts, selectedIds, variant, settings, addAnalysis, hasValidApiKey, hasRunAnalysis])
 
   const handleStop = () => {
     abortControllerRef.current?.abort()
@@ -208,6 +228,45 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
             />
           </div>
 
+          {/* Methodology Selector - only show for returning users */}
+          {hasRunAnalysis && (
+            <div className="flex items-center gap-2">
+              <Select
+                value={variant}
+                onValueChange={(v) => setVariant(v as AnalysisVariant)}
+                disabled={isRunning}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRESETS.map((preset) => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      <div className="flex flex-col items-start">
+                        <div className="flex items-center gap-2">
+                          <span>{preset.name}</span>
+                          {preset.id === 'standard' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent-100 text-accent-700">
+                              Recommended
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-surface-500">{preset.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button
+                onClick={() => setShowMethodology(true)}
+                className="p-2 rounded-lg text-surface-500 hover:text-surface-700 hover:bg-surface-100 transition-colors"
+                title="View methodology"
+              >
+                <Eye className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           {/* Run Button */}
           {isRunning ? (
             <Button variant="destructive" onClick={handleStop}>
@@ -231,12 +290,24 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
       {/* Error Message */}
       {error && (
         <div className="flex-shrink-0 mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 animate-slide-down">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-            <div>
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-red-700">Error</p>
               <p className="text-sm text-red-600 mt-0.5">{error}</p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setError(null)
+                handleRun()
+              }}
+              className="flex-shrink-0"
+            >
+              <RotateCcw className="h-4 w-4 mr-1.5" />
+              Retry
+            </Button>
           </div>
         </div>
       )}
@@ -303,7 +374,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                   )}
                 </div>
               </div>
-              <div className="p-5 max-h-[500px] overflow-y-auto prose-analysis">
+              <div className="p-5 overflow-y-auto prose-analysis">
                 <ReactMarkdown>{content}</ReactMarkdown>
                 {isRunning && <span className="typing-cursor" />}
               </div>
@@ -326,6 +397,21 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                   Export
                 </Button>
               </div>
+            )}
+
+            {/* Mode Discovery - inline at end of content for first-time users */}
+            {!isRunning && content && !isViewingHistory && !hasSeenModeDiscovery && (
+              <ModeDiscoveryCard
+                onExplore={() => {
+                  localStorage.setItem('hearsay-seen-mode-discovery', 'true')
+                  setHasSeenModeDiscovery(true)
+                  setShowMethodology(true)
+                }}
+                onDismiss={() => {
+                  localStorage.setItem('hearsay-seen-mode-discovery', 'true')
+                  setHasSeenModeDiscovery(true)
+                }}
+              />
             )}
           </div>
         ) : transcripts.length === 0 ? (
@@ -351,6 +437,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
         open={showAPIPrompt}
         onOpenChange={setShowAPIPrompt}
         onSuccess={handleRun}
+      />
+      <MethodologyPanel
+        preset={currentPreset ?? null}
+        open={showMethodology}
+        onClose={() => setShowMethodology(false)}
       />
     </div>
   )

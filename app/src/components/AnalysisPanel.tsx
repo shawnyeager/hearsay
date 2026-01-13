@@ -36,7 +36,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
   const { addAnalysis } = useAnalyses()
   const { settings } = useSettings()
 
-  const [variant, setVariant] = useState<AnalysisVariant>('core')
+  const [variant, setVariant] = useState<AnalysisVariant>('standard')
   const [isRunning, setIsRunning] = useState(false)
   const [isScoring, setIsScoring] = useState(false)
   const [content, setContent] = useState('')

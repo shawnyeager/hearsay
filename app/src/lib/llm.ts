@@ -96,7 +96,12 @@ export async function streamChat(
     if (error instanceof Error && error.name === 'AbortError') {
       callbacks.onComplete(fullText)
     } else {
-      callbacks.onError(error instanceof Error ? error : new Error('Stream error'))
+      // Provide more context about streaming failures
+      const baseMessage = error instanceof Error ? error.message : 'Unknown error'
+      const contextMessage = fullText.length > 0
+        ? `Connection lost during generation (${Math.round(fullText.length / 1000)}k chars received). ${baseMessage}`
+        : `Failed to connect: ${baseMessage}`
+      callbacks.onError(new Error(contextMessage))
     }
   }
 }

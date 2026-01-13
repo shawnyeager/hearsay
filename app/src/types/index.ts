@@ -24,7 +24,7 @@ export interface ModelInfo {
 }
 
 // Analysis types
-export type AnalysisVariant = 'core' | 'with-quotes'
+export type AnalysisVariant = 'standard' | 'quote-heavy' | 'quick-scan' | 'deep-dive'
 
 export interface Analysis {
   id: string
