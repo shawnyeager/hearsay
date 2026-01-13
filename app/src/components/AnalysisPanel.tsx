@@ -280,14 +280,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
           <div className="card-elevated overflow-hidden animate-scale-in">
             <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Zap className="h-4 w-4 text-accent-500" />
-                  {isRunning && (
-                    <div className="absolute inset-0 animate-ping">
-                      <Zap className="h-4 w-4 text-accent-500 opacity-50" />
-                    </div>
-                  )}
-                </div>
+                <Zap className={`h-4 w-4 text-accent-500 ${isRunning ? 'animate-pulse' : ''}`} />
                 <span className="text-sm font-medium text-surface-700">
                   Analysis Output
                 </span>
@@ -309,7 +302,7 @@ export function AnalysisPanel({ selectedIds }: AnalysisPanelProps) {
         ) : (
           <div className="h-full flex flex-col items-center justify-center animate-fade-in">
             <div className="relative mb-6">
-              <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+              <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
               <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
                 <Zap className="h-10 w-10 text-white" strokeWidth={2} />
               </div>

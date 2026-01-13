@@ -79,15 +79,19 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     }
   }, [triggerAddDialog])
 
-  // Clean up stale selected IDs when transcripts change
+  // Clean up stale selected IDs when transcripts change (skip while loading)
   useEffect(() => {
+    if (transcripts.length === 0) return // Don't clear selections while loading
     const validIds = new Set(transcripts.map(t => t.id))
-    const cleanedIds = new Set(Array.from(selectedIds).filter(id => validIds.has(id)))
-    if (cleanedIds.size !== selectedIds.size) {
-      setSelectedIds(cleanedIds)
-      localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(cleanedIds)))
-    }
-  }, [transcripts, selectedIds])
+    setSelectedIds(prev => {
+      const cleanedIds = new Set(Array.from(prev).filter(id => validIds.has(id)))
+      if (cleanedIds.size !== prev.size) {
+        localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(cleanedIds)))
+        return cleanedIds
+      }
+      return prev
+    })
+  }, [transcripts])
 
   const handleSelectionChange = useCallback((ids: Set<string>) => {
     setSelectedIds(ids)
@@ -289,14 +293,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
               <div className="card-elevated overflow-hidden animate-scale-in">
                 <div className="px-4 py-3 border-b border-surface-200 bg-surface-50">
                   <div className="flex items-center gap-2">
-                    <div className="relative">
-                      <Zap className="h-4 w-4 text-accent-500" />
-                      {isRunning && (
-                        <div className="absolute inset-0 animate-ping">
-                          <Zap className="h-4 w-4 text-accent-500 opacity-50" />
-                        </div>
-                      )}
-                    </div>
+                    <Zap className={`h-4 w-4 text-accent-500 ${isRunning ? 'animate-pulse' : ''}`} />
                     <span className="text-sm font-medium text-surface-700">
                       {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
                     </span>
@@ -396,7 +393,7 @@ function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; on
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+        <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
         <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
           <Zap className="h-10 w-10 text-white" strokeWidth={2} />
         </div>
@@ -445,7 +442,7 @@ function ReadyState({ count }: { count: number }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-accent-200 rounded-3xl blur-3xl scale-150 animate-pulse-glow" />
+        <div className="absolute inset-0 bg-accent-200/50 rounded-3xl blur-2xl scale-125" />
         <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center shadow-xl shadow-accent-500/30">
           <Zap className="h-10 w-10 text-white" strokeWidth={2} />
         </div>
