@@ -1,10 +1,10 @@
-# Interview to Roadmap Kit
+# Hearsay
 
-LLM prompts and methodology for turning customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
+Turn customer interview transcripts into product roadmap recommendations. Point it at your transcripts and get: **What should we build next, and why?**
 
 ## Web App
 
-A browser-based interface is available in the `/app` directory. BYOM (bring your own model) — supports OpenRouter, OpenAI, and Maple AI.
+A browser-based interface lives in `/app`. BYOM (bring your own model) — supports OpenRouter, OpenAI, and Maple AI.
 
 ```bash
 cd app
@@ -28,7 +28,7 @@ Explicitly avoids:
 - Opinion-driven prioritization
 - Mention-counting (counts transcripts, not mentions)
 
-## Quick Start
+## Quick Start (CLI)
 
 ```
 Analyze the interviews in ./transcripts/ using the methodology in PROMPT_core.md
