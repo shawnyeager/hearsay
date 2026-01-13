@@ -267,22 +267,40 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
             </div>
           )}
 
-          {/* Run Button */}
-          {isRunning ? (
-            <Button variant="destructive" onClick={handleStop}>
-              <Square className="h-4 w-4 mr-2" />
-              Stop
-            </Button>
-          ) : (
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {/* New - always visible, clears everything for fresh start */}
             <Button
-              onClick={handleRun}
-              disabled={selectedTranscripts.length === 0}
-              className="min-w-[140px]"
+              variant="ghost"
+              onClick={() => {
+                setContent('')
+                setScore(null)
+                setError(null)
+                handleSelectionChange(new Set())
+              }}
+              className="text-surface-600"
             >
-              <Play className="h-4 w-4 mr-2" />
-              Run Analysis
+              <RotateCcw className="h-4 w-4 mr-1.5" />
+              New
             </Button>
-          )}
+
+            {/* Run/Stop Button */}
+            {isRunning ? (
+              <Button variant="destructive" onClick={handleStop}>
+                <Square className="h-4 w-4 mr-2" />
+                Stop
+              </Button>
+            ) : (
+              <Button
+                onClick={handleRun}
+                disabled={selectedTranscripts.length === 0}
+                className="min-w-[140px]"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Run Analysis
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       )}
