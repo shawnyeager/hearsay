@@ -17,6 +17,7 @@ export interface StreamCallbacks {
   onToken: (token: string) => void
   onComplete: (fullText: string) => void
   onError: (error: Error) => void
+  onPartialComplete?: (partialText: string, error: Error) => void
 }
 
 export async function streamChat(
@@ -140,19 +141,42 @@ export async function streamChat(
   } catch (error) {
     if (timeoutId) clearTimeout(timeoutId)
 
+    // Log the actual error for debugging
+    console.error('[Hearsay] Stream error:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      charsReceived: fullText.length,
+      error
+    })
+
     if (error instanceof Error && error.name === 'AbortError') {
       // User cancelled - complete with what we have
       callbacks.onComplete(fullText)
     } else {
-      // Provide more context about streaming failures
-      const baseMessage = error instanceof Error ? error.message : 'Unknown error'
+      // Build error message with better details
+      let baseMessage = 'Unknown error'
+      if (error instanceof TypeError) {
+        baseMessage = 'Network connection failed'
+      } else if (error instanceof Error) {
+        baseMessage = error.message
+      }
       const isTimeout = baseMessage.includes('timeout')
-      const contextMessage = fullText.length > 0
-        ? isTimeout
-          ? `Stream stalled after ${Math.round(fullText.length / 1000)}k chars. The LLM may be overloaded - try again.`
-          : `Connection lost after ${Math.round(fullText.length / 1000)}k chars. ${baseMessage}`
-        : `Failed to connect: ${baseMessage}`
-      callbacks.onError(new Error(contextMessage))
+
+      if (fullText.length > 0 && callbacks.onPartialComplete) {
+        // We have partial content - preserve it and signal the interruption
+        const contextMessage = isTimeout
+          ? `Generation stalled - the LLM may be overloaded`
+          : `Connection interrupted`
+        callbacks.onPartialComplete(fullText, new Error(contextMessage))
+      } else if (fullText.length > 0) {
+        // Fallback: call onError but content is already in UI via onToken
+        const contextMessage = isTimeout
+          ? `Stream stalled after ${Math.round(fullText.length / 1000)}k chars`
+          : `Connection lost after ${Math.round(fullText.length / 1000)}k chars`
+        callbacks.onError(new Error(contextMessage))
+      } else {
+        callbacks.onError(new Error(`Failed to connect: ${baseMessage}`))
+      }
     }
   }
 }

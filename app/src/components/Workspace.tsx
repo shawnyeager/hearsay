@@ -187,6 +187,11 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
             }
             setIsRunning(false)
           },
+          onPartialComplete: (_partialText, err) => {
+            // Content is already in UI via onToken - just show the error
+            setError(err.message)
+            setIsRunning(false)
+          },
         },
         abortControllerRef.current.signal
       )

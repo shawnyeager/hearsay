@@ -32,8 +32,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             // Ghost - minimal
             'text-surface-600 hover:bg-surface-100 hover:text-surface-800':
               variant === 'ghost',
-            // Destructive - warm amber (less alarming)
-            'bg-gradient-to-b from-amber-500 to-amber-600 text-white font-semibold shadow-md shadow-amber-500/20 hover:from-amber-400 hover:to-amber-500':
+            // Destructive - muted rose (firm but not alarming)
+            'bg-gradient-to-b from-rose-400 to-rose-500 text-white font-semibold shadow-md shadow-rose-400/20 hover:from-rose-300 hover:to-rose-400':
               variant === 'destructive',
             // Accent - glowing warm
             'bg-gradient-to-b from-accent-500 to-accent-600 text-white font-semibold glow-accent hover:from-accent-400 hover:to-accent-500':
