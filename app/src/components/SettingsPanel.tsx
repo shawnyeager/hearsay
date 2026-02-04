@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Eye, EyeOff, ExternalLink, CheckCircle2, XCircle, Loader2, Shield, Zap } from 'lucide-react'
+import { Eye, EyeOff, ExternalLink, CheckCircle2, XCircle, Loader2, Shield, Zap, AlertTriangle, Trash2 } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
+import { useTranscripts } from '@/contexts/TranscriptContext'
+import { useAnalyses } from '@/contexts/AnalysisContext'
 import {
   Button,
   Input,
@@ -189,6 +191,11 @@ export function SettingsPanel() {
         <section className="pt-6 border-t border-surface-200">
           <ConnectionTest />
         </section>
+
+        {/* Danger Zone */}
+        <section className="pt-6 border-t border-surface-200">
+          <DangerZone />
+        </section>
       </div>
     </div>
   )
@@ -359,6 +366,90 @@ function ConnectionTest() {
           {errorMessage || 'Connection failed'}
         </div>
       )}
+    </div>
+  )
+}
+
+function DangerZone() {
+  const { transcripts, deleteTranscript } = useTranscripts()
+  const { analyses, deleteAnalysis } = useAnalyses()
+  const [isClearing, setIsClearing] = useState(false)
+  const [cleared, setCleared] = useState(false)
+
+  const totalItems = transcripts.length + analyses.length
+
+  const handleClearAll = async () => {
+    if (!confirm(`This will delete ${transcripts.length} transcript(s) and ${analyses.length} analysis(es). This cannot be undone. Continue?`)) {
+      return
+    }
+
+    setIsClearing(true)
+    try {
+      // Delete all analyses first
+      for (const analysis of analyses) {
+        await deleteAnalysis(analysis.id)
+      }
+      // Then delete all transcripts
+      for (const transcript of transcripts) {
+        await deleteTranscript(transcript.id)
+      }
+      // Clear local storage flags
+      localStorage.removeItem('hearsay-has-run-analysis')
+      localStorage.removeItem('hearsay-seen-mode-discovery')
+      localStorage.removeItem('selected-transcripts')
+      
+      setCleared(true)
+      setTimeout(() => setCleared(false), 3000)
+    } finally {
+      setIsClearing(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-medium text-red-700 mb-1 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" />
+          Danger Zone
+        </h3>
+        <p className="text-xs text-surface-500">
+          These actions are irreversible
+        </p>
+      </div>
+
+      <div className="p-4 rounded-xl border border-red-200 bg-red-50/50">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-surface-800">Clear all data</p>
+            <p className="text-xs text-surface-500 mt-0.5">
+              Delete all transcripts and analyses ({totalItems} items)
+            </p>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleClearAll}
+            disabled={isClearing || totalItems === 0}
+          >
+            {isClearing ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                Clearing...
+              </>
+            ) : cleared ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                Cleared!
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4 mr-1.5" />
+                Clear All
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
