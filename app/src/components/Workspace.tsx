@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
-import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap } from 'lucide-react'
+import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap, Sparkles, FileText, ArrowRight } from 'lucide-react'
 import { HearsayLogo } from './HearsayLogo'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
@@ -10,10 +9,13 @@ import { SetupSidebar } from './SetupSidebar'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { MethodologyPanel } from './MethodologyPanel'
 import { ModeDiscoveryCard } from './ModeDiscoveryCard'
-import { Button } from '@/components/ui'
+import { AnalysisOutput } from './AnalysisOutput'
+import { RunningTimer } from './RunningTimer'
+import { Button, Tooltip } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
 import { getPreset } from '@/prompts/presets'
+import { SAMPLE_TRANSCRIPTS } from '@/data/sampleTranscripts'
 import type { Analysis, AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
@@ -26,7 +28,7 @@ interface WorkspaceProps {
 
 export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, triggerAddDialog }: WorkspaceProps) {
   const { settings, hasValidApiKey } = useSettings()
-  const { transcripts } = useTranscripts()
+  const { transcripts, addTranscript } = useTranscripts()
   const { addAnalysis } = useAnalyses()
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
@@ -57,6 +59,8 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [showAPIPrompt, setShowAPIPrompt] = useState(false)
   const [showMethodology, setShowMethodology] = useState(false)
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false)
+  const [runStartTime, setRunStartTime] = useState<number | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const currentPreset = getPreset(variant)
@@ -99,6 +103,72 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(ids)))
   }, [])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to run analysis
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (!isRunning && selectedIds.size > 0 && hasValidApiKey) {
+          e.preventDefault()
+          // Trigger run - we need to call it in next tick since handleRun may not be defined yet
+          document.dispatchEvent(new CustomEvent('hearsay:run'))
+        }
+      }
+      // Escape to stop running analysis
+      if (e.key === 'Escape' && isRunning) {
+        abortControllerRef.current?.abort()
+        setIsRunning(false)
+      }
+    }
+
+    const handleRunEvent = () => {
+      if (!isRunning && selectedIds.size > 0) {
+        // This will be handled by handleRun
+        const runBtn = document.querySelector('[data-run-button]') as HTMLButtonElement
+        runBtn?.click()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('hearsay:run', handleRunEvent)
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('hearsay:run', handleRunEvent)
+    }
+  }, [isRunning, selectedIds.size, hasValidApiKey])
+
+  // Warn before leaving during analysis
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isRunning) {
+        e.preventDefault()
+        e.returnValue = 'Analysis is still running. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isRunning])
+
+  const handleLoadSamples = useCallback(async () => {
+    setIsLoadingSamples(true)
+    try {
+      const addedIds: string[] = []
+      for (const sample of SAMPLE_TRANSCRIPTS) {
+        const transcript = await addTranscript(sample.name, sample.content)
+        addedIds.push(transcript.id)
+      }
+      // Auto-select all loaded samples
+      const newSelection = new Set(addedIds)
+      setSelectedIds(newSelection)
+      localStorage.setItem('selected-transcripts', JSON.stringify(addedIds))
+    } finally {
+      setIsLoadingSamples(false)
+    }
+  }, [addTranscript])
+
   const handleStartNew = useCallback(() => {
     setContent('')
     setScore(null)
@@ -115,6 +185,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     }
 
     setIsRunning(true)
+    setRunStartTime(Date.now())
     setContent('')
     setScore(null)
     setError(null)
@@ -274,16 +345,16 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
           {content || isRunning ? (
             <div className="space-y-4 max-w-4xl">
               {/* Historical Analysis Banner */}
-              {isViewingHistory && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
-                  <div className="flex items-center gap-3">
+              {isViewingHistory && loadedAnalysis && (
+                <div className="px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
+                  <div className="flex items-center gap-3 mb-2">
                     <Clock className="h-4 w-4 text-surface-500" />
-                    <div>
+                    <div className="flex-1">
                       <span className="text-sm font-medium text-surface-700">
-                        Viewing historical analysis
+                        Historical analysis
                       </span>
                       <span className="text-xs text-surface-500 ml-2">
-                        {new Date(loadedAnalysis!.createdAt).toLocaleDateString(undefined, {
+                        {new Date(loadedAnalysis.createdAt).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -292,6 +363,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                         })}
                       </span>
                     </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-surface-200 text-surface-600 capitalize">
+                      {loadedAnalysis.variant.replace('-', ' ')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-surface-500 ml-7">
+                    {loadedAnalysis.transcriptIds.length} transcript{loadedAnalysis.transcriptIds.length !== 1 ? 's' : ''} · {loadedAnalysis.model.split('/').pop()}
                   </div>
                 </div>
               )}
@@ -304,17 +381,21 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                     <span className="text-sm font-medium text-surface-700">
                       {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
                     </span>
-                    {isRunning && (
+                    {isRunning ? (
                       <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
                         Generating...
+                        <RunningTimer startTime={runStartTime} isRunning={isRunning} />
+                      </span>
+                    ) : !isViewingHistory && content && (
+                      <span className="text-xs text-surface-400 ml-auto">
+                        {settings.selectedModel.split('/').pop()}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="p-5 overflow-y-auto prose-analysis">
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                  {isRunning && <span className="typing-cursor" />}
+                <div className="p-5 overflow-y-auto">
+                  <AnalysisOutput content={content} isStreaming={isRunning} />
                 </div>
               </div>
 
@@ -361,7 +442,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
               )}
             </div>
           ) : transcripts.length === 0 ? (
-            <WelcomeState onAddClick={() => setAddDialogOpen(true)} onGuideClick={onGuideClick} />
+            <WelcomeState 
+              onAddClick={() => setAddDialogOpen(true)} 
+              onGuideClick={onGuideClick}
+              onLoadSamples={handleLoadSamples}
+              isLoadingSamples={isLoadingSamples}
+            />
           ) : selectedTranscripts.length === 0 ? (
             <EmptyState message="Select transcripts" description="Check the transcripts you want to analyze in the sidebar, then click Run Analysis." />
           ) : (
@@ -396,27 +482,105 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   )
 }
 
-function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; onGuideClick?: () => void }) {
+function WelcomeState({ 
+  onAddClick, 
+  onGuideClick,
+  onLoadSamples,
+  isLoadingSamples,
+}: { 
+  onAddClick: () => void
+  onGuideClick?: () => void
+  onLoadSamples: () => void
+  isLoadingSamples: boolean
+}) {
   return (
-    <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="mb-6">
-        <HearsayLogo size="lg" className="w-20 h-20" />
-      </div>
-      <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
-        Welcome to Hearsay
-      </h3>
-      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed mb-6">
-        Turn customer interview transcripts into actionable product insights.
-      </p>
-      <div className="flex items-center gap-3">
-        <Button onClick={onAddClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Transcripts
-        </Button>
+    <div className="h-full flex flex-col items-center justify-center animate-fade-in px-4">
+      <div className="max-w-xl w-full">
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <div className="mb-6 inline-block">
+            <HearsayLogo size="lg" className="w-20 h-20" />
+          </div>
+          <h1 className="font-display text-2xl font-semibold text-surface-900 mb-3">
+            Turn interviews into insights
+          </h1>
+          <p className="text-surface-600 leading-relaxed max-w-md mx-auto">
+            Add your customer interview transcripts and Hearsay will find patterns, 
+            rank problems by frequency, and recommend what to build next.
+          </p>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 mb-8">
+          {/* Add Transcripts Card */}
+          <button
+            onClick={onAddClick}
+            className="group p-5 rounded-xl border-2 border-surface-200 hover:border-accent-400 bg-white hover:bg-accent-50/50 text-left transition-all duration-200"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center mb-3 group-hover:bg-accent-200 transition-colors">
+              <Plus className="h-5 w-5 text-accent-600" />
+            </div>
+            <h3 className="font-display font-semibold text-surface-900 mb-1">
+              Add your transcripts
+            </h3>
+            <p className="text-sm text-surface-500">
+              Upload .txt or .md files, or paste interview text directly
+            </p>
+          </button>
+
+          {/* Load Samples Card */}
+          <button
+            onClick={onLoadSamples}
+            disabled={isLoadingSamples}
+            className="group p-5 rounded-xl border-2 border-dashed border-surface-200 hover:border-surface-400 bg-surface-50 hover:bg-surface-100 text-left transition-all duration-200 disabled:opacity-50"
+          >
+            <div className="w-10 h-10 rounded-lg bg-surface-200 flex items-center justify-center mb-3 group-hover:bg-surface-300 transition-colors">
+              {isLoadingSamples ? (
+                <Loader2 className="h-5 w-5 text-surface-500 animate-spin" />
+              ) : (
+                <Sparkles className="h-5 w-5 text-surface-500" />
+              )}
+            </div>
+            <h3 className="font-display font-semibold text-surface-900 mb-1">
+              Try with sample data
+            </h3>
+            <p className="text-sm text-surface-500">
+              Load 5 example interviews to see how Hearsay works
+            </p>
+          </button>
+        </div>
+
+        {/* How it works */}
+        <div className="bg-surface-50 rounded-xl p-5 border border-surface-200">
+          <h4 className="text-sm font-medium text-surface-700 mb-4">How it works</h4>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-sm">
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
+              <span>Add transcripts</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-surface-300 flex-shrink-0 hidden sm:block" />
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
+              <span>Run analysis</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-surface-300 flex-shrink-0 hidden sm:block" />
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
+              <span>Get ranked insights</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Guide link */}
         {onGuideClick && (
-          <Button variant="outline" onClick={onGuideClick}>
-            View Guide
-          </Button>
+          <div className="text-center mt-6">
+            <button
+              onClick={onGuideClick}
+              className="text-sm text-surface-500 hover:text-accent-600 transition-colors"
+            >
+              New to customer interviews? Read our guide →
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -442,28 +606,71 @@ function EmptyState({ message, description }: { message: string; description: st
 function ReadyState({ count }: { count: number }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="mb-6">
-        <HearsayLogo size="lg" className="w-20 h-20" />
+      <div className="mb-6 relative">
+        <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-2xl animate-pulse" />
+        <HearsayLogo size="lg" className="w-20 h-20 relative" />
       </div>
       <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         Ready to analyze
       </h3>
-      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
-        {count} transcript{count !== 1 ? 's' : ''} selected. Click "Run Analysis" in the sidebar to start.
+      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed mb-4">
+        {count} transcript{count !== 1 ? 's' : ''} selected
       </p>
+      <div className="flex items-center gap-2 text-sm text-surface-600">
+        <span>Click</span>
+        <span className="px-2 py-1 rounded bg-accent-100 text-accent-700 font-medium">
+          Run Analysis
+        </span>
+        <span>or press</span>
+        <kbd className="px-2 py-1 rounded bg-surface-100 border border-surface-200 font-mono text-xs">
+          ⌘↵
+        </kbd>
+      </div>
     </div>
   )
 }
 
+// Rubric dimension descriptions for tooltips
+const DIMENSION_INFO: Record<string, { label: string; description: string }> = {
+  themeConcreteness: {
+    label: 'Concrete',
+    description: 'Are themes specific enough to act on? High scores mean themes are buildable features, not vague platitudes.',
+  },
+  normalizationQuality: {
+    label: 'Normalized',
+    description: 'Are similar statements properly grouped? High scores mean no duplicates and consistent categorization.',
+  },
+  quantitativeRigor: {
+    label: 'Rigorous',
+    description: 'Is frequency counting accurate? High scores mean clear "X of N transcripts" format, counting transcripts not mentions.',
+  },
+  rankingValidity: {
+    label: 'Ranked',
+    description: 'Does ranking follow frequency? High scores mean problems ordered by how often they appeared, not opinion.',
+  },
+  attributionAccuracy: {
+    label: 'Attributed',
+    description: 'Can claims be traced to sources? High scores mean every theme links to specific interviewees.',
+  },
+  evidenceGrounding: {
+    label: 'Grounded',
+    description: 'Are quotes accurate and representative? High scores mean verbatim quotes that fairly represent the data.',
+  },
+  synthesisQuality: {
+    label: 'Synthesized',
+    description: 'Do recommendations follow from data? High scores mean suggestions directly map to top-frequency themes.',
+  },
+}
+
 function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
   const dimensions = [
-    { key: 'themeConcreteness', label: 'Concrete', value: score.themeConcreteness },
-    { key: 'normalizationQuality', label: 'Normalized', value: score.normalizationQuality },
-    { key: 'quantitativeRigor', label: 'Rigorous', value: score.quantitativeRigor },
-    { key: 'rankingValidity', label: 'Ranked', value: score.rankingValidity },
-    { key: 'attributionAccuracy', label: 'Attributed', value: score.attributionAccuracy },
-    { key: 'evidenceGrounding', label: 'Grounded', value: score.evidenceGrounding },
-    { key: 'synthesisQuality', label: 'Synthesized', value: score.synthesisQuality },
+    { key: 'themeConcreteness', value: score.themeConcreteness },
+    { key: 'normalizationQuality', value: score.normalizationQuality },
+    { key: 'quantitativeRigor', value: score.quantitativeRigor },
+    { key: 'rankingValidity', value: score.rankingValidity },
+    { key: 'attributionAccuracy', value: score.attributionAccuracy },
+    { key: 'evidenceGrounding', value: score.evidenceGrounding },
+    { key: 'synthesisQuality', value: score.synthesisQuality },
   ]
 
   const getScoreColor = scoreColors.getText
@@ -478,7 +685,7 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
           </div>
           <div>
             <span className="font-display font-semibold text-surface-900">Quality Score</span>
-            <div className="text-xs text-surface-500 mt-0.5">Analysis evaluation</div>
+            <div className="text-xs text-surface-500 mt-0.5">Hover over dimensions to learn more</div>
           </div>
         </div>
         <div className="text-right">
@@ -502,14 +709,19 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
       </div>
 
       <div className="grid grid-cols-7 gap-2 mb-5">
-        {dimensions.map((dim) => (
-          <div key={dim.key} className={`text-center p-2 rounded-lg ${getScoreBg(dim.value)}`}>
-            <div className={`text-lg font-semibold ${getScoreColor(dim.value)}`}>
-              {dim.value}
-            </div>
-            <div className="text-[10px] text-surface-500 truncate mt-0.5">{dim.label}</div>
-          </div>
-        ))}
+        {dimensions.map((dim) => {
+          const info = DIMENSION_INFO[dim.key]
+          return (
+            <Tooltip key={dim.key} content={info.description} position="bottom">
+              <div className={`text-center p-2 rounded-lg cursor-help ${getScoreBg(dim.value)}`}>
+                <div className={`text-lg font-semibold ${getScoreColor(dim.value)}`}>
+                  {dim.value}
+                </div>
+                <div className="text-[10px] text-surface-500 truncate mt-0.5">{info.label}</div>
+              </div>
+            </Tooltip>
+          )
+        })}
       </div>
 
       {score.commentary && (

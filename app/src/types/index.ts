@@ -21,6 +21,7 @@ export interface ProviderConfig {
 export interface ModelInfo {
   id: string
   name: string
+  tier?: 'fast' | 'balanced' | 'powerful'  // Cost/speed tier hint
 }
 
 // Analysis types
@@ -66,31 +67,31 @@ export const PROVIDER_DEFAULTS: Record<ProviderId, { name: string; baseUrl: stri
     name: 'Maple AI',
     baseUrl: 'http://localhost:8080/v1',
     models: [
-      { id: 'llama3-3-70b', name: 'Llama 3.3 70B' },
-      { id: 'deepseek-r1-0528', name: 'DeepSeek R1' },
-      { id: 'qwen2-5-72b', name: 'Qwen 2.5 72B' },
-      { id: 'mistral-small-3-1-24b', name: 'Mistral Small 3.1 24B' },
+      { id: 'llama3-3-70b', name: 'Llama 3.3 70B', tier: 'powerful' },
+      { id: 'deepseek-r1-0528', name: 'DeepSeek R1', tier: 'powerful' },
+      { id: 'qwen2-5-72b', name: 'Qwen 2.5 72B', tier: 'balanced' },
+      { id: 'mistral-small-3-1-24b', name: 'Mistral Small 3.1 24B', tier: 'fast' },
     ],
   },
   openai: {
     name: 'OpenAI',
     baseUrl: 'https://api.openai.com/v1',
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o' },
-      { id: 'gpt-4.1', name: 'GPT-4.1' },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+      { id: 'gpt-4o', name: 'GPT-4o', tier: 'balanced' },
+      { id: 'gpt-4.1', name: 'GPT-4.1', tier: 'powerful' },
+      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', tier: 'powerful' },
     ],
   },
   openrouter: {
     name: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api/v1',
     models: [
-      { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
-      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-      { id: 'openai/gpt-4o', name: 'GPT-4o' },
-      { id: 'openai/gpt-4.1', name: 'GPT-4.1' },
-      { id: 'google/gemini-2.5-pro-preview', name: 'Gemini 2.5 Pro' },
-      { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1' },
+      { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', tier: 'balanced' },
+      { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', tier: 'balanced' },
+      { id: 'openai/gpt-4o', name: 'GPT-4o', tier: 'balanced' },
+      { id: 'openai/gpt-4.1', name: 'GPT-4.1', tier: 'powerful' },
+      { id: 'google/gemini-2.5-pro-preview', name: 'Gemini 2.5 Pro', tier: 'powerful' },
+      { id: 'deepseek/deepseek-r1', name: 'DeepSeek R1', tier: 'powerful' },
     ],
   },
 }

@@ -2,6 +2,7 @@ import { Clock, X, FileText, Zap, Trash2, BarChart3, ChevronRight } from 'lucide
 import { useAnalyses } from '@/contexts/AnalysisContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { getRatingFromScore, getRatingColor } from '@/lib/analysis'
+import { formatRelativeTime } from '@/lib/timeUtils'
 import type { Analysis } from '@/types'
 
 interface HistoryPanelProps {
@@ -154,13 +155,8 @@ function HistoryItem({
 
           {/* Meta info */}
           <div className="flex items-center gap-3 mt-1.5 text-xs text-surface-500">
-            <span>
-              {new Date(analysis.createdAt).toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-              })}
+            <span title={new Date(analysis.createdAt).toLocaleString()}>
+              {formatRelativeTime(new Date(analysis.createdAt))}
             </span>
             <span className="w-1 h-1 rounded-full bg-surface-300" />
             <span className="capitalize">{analysis.variant.replace('-', ' ')}</span>
