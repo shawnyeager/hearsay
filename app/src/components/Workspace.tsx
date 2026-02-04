@@ -101,6 +101,41 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(ids)))
   }, [])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to run analysis
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        if (!isRunning && selectedIds.size > 0 && hasValidApiKey) {
+          e.preventDefault()
+          // Trigger run - we need to call it in next tick since handleRun may not be defined yet
+          document.dispatchEvent(new CustomEvent('hearsay:run'))
+        }
+      }
+      // Escape to stop running analysis
+      if (e.key === 'Escape' && isRunning) {
+        abortControllerRef.current?.abort()
+        setIsRunning(false)
+      }
+    }
+
+    const handleRunEvent = () => {
+      if (!isRunning && selectedIds.size > 0) {
+        // This will be handled by handleRun
+        const runBtn = document.querySelector('[data-run-button]') as HTMLButtonElement
+        runBtn?.click()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('hearsay:run', handleRunEvent)
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('hearsay:run', handleRunEvent)
+    }
+  }, [isRunning, selectedIds.size, hasValidApiKey])
+
   const handleLoadSamples = useCallback(async () => {
     setIsLoadingSamples(true)
     try {

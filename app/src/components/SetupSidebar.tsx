@@ -329,9 +329,12 @@ export function SetupSidebar({
           </div>
         )}
 
-        {/* Selection count */}
-        <div className="text-xs text-surface-500">
-          {selectedIds.size} of {transcripts.length} selected
+        {/* Selection count and keyboard hint */}
+        <div className="flex items-center justify-between text-xs text-surface-500">
+          <span>{selectedIds.size} of {transcripts.length} selected</span>
+          {selectedIds.size > 0 && !isRunning && (
+            <span className="text-surface-400">⌘↵ to run</span>
+          )}
         </div>
 
         {/* Run/Stop button */}
@@ -351,6 +354,7 @@ export function SetupSidebar({
               className="flex-1"
               onClick={onRun}
               disabled={selectedIds.size === 0}
+              data-run-button
             >
               <Play className="h-4 w-4 mr-2" />
               Run Analysis
