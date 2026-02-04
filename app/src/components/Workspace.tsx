@@ -345,16 +345,16 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
           {content || isRunning ? (
             <div className="space-y-4 max-w-4xl">
               {/* Historical Analysis Banner */}
-              {isViewingHistory && (
-                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
-                  <div className="flex items-center gap-3">
+              {isViewingHistory && loadedAnalysis && (
+                <div className="px-4 py-3 rounded-xl bg-surface-100 border border-surface-200 animate-slide-down">
+                  <div className="flex items-center gap-3 mb-2">
                     <Clock className="h-4 w-4 text-surface-500" />
-                    <div>
+                    <div className="flex-1">
                       <span className="text-sm font-medium text-surface-700">
-                        Viewing historical analysis
+                        Historical analysis
                       </span>
                       <span className="text-xs text-surface-500 ml-2">
-                        {new Date(loadedAnalysis!.createdAt).toLocaleDateString(undefined, {
+                        {new Date(loadedAnalysis.createdAt).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
@@ -363,6 +363,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                         })}
                       </span>
                     </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-surface-200 text-surface-600 capitalize">
+                      {loadedAnalysis.variant.replace('-', ' ')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-surface-500 ml-7">
+                    {loadedAnalysis.transcriptIds.length} transcript{loadedAnalysis.transcriptIds.length !== 1 ? 's' : ''} · {loadedAnalysis.model.split('/').pop()}
                   </div>
                 </div>
               )}
@@ -375,11 +381,15 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                     <span className="text-sm font-medium text-surface-700">
                       {isViewingHistory ? 'Historical Output' : 'Analysis Output'}
                     </span>
-                    {isRunning && (
+                    {isRunning ? (
                       <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
                         Generating...
                         <RunningTimer startTime={runStartTime} isRunning={isRunning} />
+                      </span>
+                    ) : !isViewingHistory && content && (
+                      <span className="text-xs text-surface-400 ml-auto">
+                        {settings.selectedModel.split('/').pop()}
                       </span>
                     )}
                   </div>
