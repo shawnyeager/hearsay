@@ -10,6 +10,7 @@ import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { MethodologyPanel } from './MethodologyPanel'
 import { ModeDiscoveryCard } from './ModeDiscoveryCard'
 import { AnalysisOutput } from './AnalysisOutput'
+import { RunningTimer } from './RunningTimer'
 import { Button, Tooltip } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
@@ -59,6 +60,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const [showAPIPrompt, setShowAPIPrompt] = useState(false)
   const [showMethodology, setShowMethodology] = useState(false)
   const [isLoadingSamples, setIsLoadingSamples] = useState(false)
+  const [runStartTime, setRunStartTime] = useState<number | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const currentPreset = getPreset(variant)
@@ -183,6 +185,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     }
 
     setIsRunning(true)
+    setRunStartTime(Date.now())
     setContent('')
     setScore(null)
     setError(null)
@@ -376,6 +379,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                       <span className="text-xs text-accent-600 ml-auto flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-accent-500 animate-pulse" />
                         Generating...
+                        <RunningTimer startTime={runStartTime} isRunning={isRunning} />
                       </span>
                     )}
                   </div>
