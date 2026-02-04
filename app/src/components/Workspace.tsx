@@ -543,19 +543,19 @@ function WelcomeState({
         {/* How it works */}
         <div className="bg-surface-50 rounded-xl p-5 border border-surface-200">
           <h4 className="text-sm font-medium text-surface-700 mb-4">How it works</h4>
-          <div className="flex items-start gap-3 text-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-sm">
             <div className="flex items-center gap-2 text-surface-600">
-              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">1</span>
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">1</span>
               <span>Add transcripts</span>
             </div>
-            <ArrowRight className="h-4 w-4 text-surface-300 mt-1 flex-shrink-0" />
+            <ArrowRight className="h-4 w-4 text-surface-300 flex-shrink-0 hidden sm:block" />
             <div className="flex items-center gap-2 text-surface-600">
-              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">2</span>
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">2</span>
               <span>Run analysis</span>
             </div>
-            <ArrowRight className="h-4 w-4 text-surface-300 mt-1 flex-shrink-0" />
+            <ArrowRight className="h-4 w-4 text-surface-300 flex-shrink-0 hidden sm:block" />
             <div className="flex items-center gap-2 text-surface-600">
-              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">3</span>
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium flex-shrink-0">3</span>
               <span>Get ranked insights</span>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Plus, Play, Square, ChevronLeft, ChevronRight, Eye, RotateCcw, Search, Edit2, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { useTranscripts } from '@/contexts/TranscriptContext'
 import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui'
@@ -36,10 +36,28 @@ export function SetupSidebar({
   onViewMethodology,
 }: SetupSidebarProps) {
   const { transcripts, deleteTranscript } = useTranscripts()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    // Start collapsed on mobile
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768
+    }
+    return false
+  })
   const [searchQuery, setSearchQuery] = useState('')
   const [editingTranscript, setEditingTranscript] = useState<Transcript | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  // Auto-collapse on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && !collapsed) {
+        setCollapsed(true)
+      }
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [collapsed])
 
   // Filter transcripts by search query
   const filteredTranscripts = useMemo(() => {
