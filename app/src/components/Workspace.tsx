@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
 import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap, Sparkles, FileText, ArrowRight } from 'lucide-react'
 import { HearsayLogo } from './HearsayLogo'
 import { useSettings } from '@/contexts/SettingsContext'
@@ -10,6 +9,7 @@ import { SetupSidebar } from './SetupSidebar'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { MethodologyPanel } from './MethodologyPanel'
 import { ModeDiscoveryCard } from './ModeDiscoveryCard'
+import { AnalysisOutput } from './AnalysisOutput'
 import { Button, Tooltip } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
@@ -331,9 +331,8 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
                     )}
                   </div>
                 </div>
-                <div className="p-5 overflow-y-auto prose-analysis">
-                  <ReactMarkdown>{content}</ReactMarkdown>
-                  {isRunning && <span className="typing-cursor" />}
+                <div className="p-5 overflow-y-auto">
+                  <AnalysisOutput content={content} isStreaming={isRunning} />
                 </div>
               </div>
 
