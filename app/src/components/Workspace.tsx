@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap } from 'lucide-react'
+import { Loader2, AlertCircle, Download, BarChart3, RotateCcw, Clock, Plus, Zap, Sparkles, FileText, ArrowRight } from 'lucide-react'
 import { HearsayLogo } from './HearsayLogo'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useTranscripts } from '@/contexts/TranscriptContext'
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
 import { getPreset } from '@/prompts/presets'
+import { SAMPLE_TRANSCRIPTS } from '@/data/sampleTranscripts'
 import type { Analysis, AnalysisVariant, RubricScore } from '@/types'
 import { PROVIDER_DEFAULTS } from '@/types'
 
@@ -26,7 +27,7 @@ interface WorkspaceProps {
 
 export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, triggerAddDialog }: WorkspaceProps) {
   const { settings, hasValidApiKey } = useSettings()
-  const { transcripts } = useTranscripts()
+  const { transcripts, addTranscript } = useTranscripts()
   const { addAnalysis } = useAnalyses()
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => {
@@ -57,6 +58,7 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [showAPIPrompt, setShowAPIPrompt] = useState(false)
   const [showMethodology, setShowMethodology] = useState(false)
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const currentPreset = getPreset(variant)
@@ -98,6 +100,23 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     setSelectedIds(ids)
     localStorage.setItem('selected-transcripts', JSON.stringify(Array.from(ids)))
   }, [])
+
+  const handleLoadSamples = useCallback(async () => {
+    setIsLoadingSamples(true)
+    try {
+      const addedIds: string[] = []
+      for (const sample of SAMPLE_TRANSCRIPTS) {
+        const transcript = await addTranscript(sample.name, sample.content)
+        addedIds.push(transcript.id)
+      }
+      // Auto-select all loaded samples
+      const newSelection = new Set(addedIds)
+      setSelectedIds(newSelection)
+      localStorage.setItem('selected-transcripts', JSON.stringify(addedIds))
+    } finally {
+      setIsLoadingSamples(false)
+    }
+  }, [addTranscript])
 
   const handleStartNew = useCallback(() => {
     setContent('')
@@ -361,7 +380,12 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
               )}
             </div>
           ) : transcripts.length === 0 ? (
-            <WelcomeState onAddClick={() => setAddDialogOpen(true)} onGuideClick={onGuideClick} />
+            <WelcomeState 
+              onAddClick={() => setAddDialogOpen(true)} 
+              onGuideClick={onGuideClick}
+              onLoadSamples={handleLoadSamples}
+              isLoadingSamples={isLoadingSamples}
+            />
           ) : selectedTranscripts.length === 0 ? (
             <EmptyState message="Select transcripts" description="Check the transcripts you want to analyze in the sidebar, then click Run Analysis." />
           ) : (
@@ -396,27 +420,105 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
   )
 }
 
-function WelcomeState({ onAddClick, onGuideClick }: { onAddClick: () => void; onGuideClick?: () => void }) {
+function WelcomeState({ 
+  onAddClick, 
+  onGuideClick,
+  onLoadSamples,
+  isLoadingSamples,
+}: { 
+  onAddClick: () => void
+  onGuideClick?: () => void
+  onLoadSamples: () => void
+  isLoadingSamples: boolean
+}) {
   return (
-    <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="mb-6">
-        <HearsayLogo size="lg" className="w-20 h-20" />
-      </div>
-      <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
-        Welcome to Hearsay
-      </h3>
-      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed mb-6">
-        Turn customer interview transcripts into actionable product insights.
-      </p>
-      <div className="flex items-center gap-3">
-        <Button onClick={onAddClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Transcripts
-        </Button>
+    <div className="h-full flex flex-col items-center justify-center animate-fade-in px-4">
+      <div className="max-w-xl w-full">
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <div className="mb-6 inline-block">
+            <HearsayLogo size="lg" className="w-20 h-20" />
+          </div>
+          <h1 className="font-display text-2xl font-semibold text-surface-900 mb-3">
+            Turn interviews into insights
+          </h1>
+          <p className="text-surface-600 leading-relaxed max-w-md mx-auto">
+            Add your customer interview transcripts and Hearsay will find patterns, 
+            rank problems by frequency, and recommend what to build next.
+          </p>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 mb-8">
+          {/* Add Transcripts Card */}
+          <button
+            onClick={onAddClick}
+            className="group p-5 rounded-xl border-2 border-surface-200 hover:border-accent-400 bg-white hover:bg-accent-50/50 text-left transition-all duration-200"
+          >
+            <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center mb-3 group-hover:bg-accent-200 transition-colors">
+              <Plus className="h-5 w-5 text-accent-600" />
+            </div>
+            <h3 className="font-display font-semibold text-surface-900 mb-1">
+              Add your transcripts
+            </h3>
+            <p className="text-sm text-surface-500">
+              Upload .txt or .md files, or paste interview text directly
+            </p>
+          </button>
+
+          {/* Load Samples Card */}
+          <button
+            onClick={onLoadSamples}
+            disabled={isLoadingSamples}
+            className="group p-5 rounded-xl border-2 border-dashed border-surface-200 hover:border-surface-400 bg-surface-50 hover:bg-surface-100 text-left transition-all duration-200 disabled:opacity-50"
+          >
+            <div className="w-10 h-10 rounded-lg bg-surface-200 flex items-center justify-center mb-3 group-hover:bg-surface-300 transition-colors">
+              {isLoadingSamples ? (
+                <Loader2 className="h-5 w-5 text-surface-500 animate-spin" />
+              ) : (
+                <Sparkles className="h-5 w-5 text-surface-500" />
+              )}
+            </div>
+            <h3 className="font-display font-semibold text-surface-900 mb-1">
+              Try with sample data
+            </h3>
+            <p className="text-sm text-surface-500">
+              Load 5 example interviews to see how Hearsay works
+            </p>
+          </button>
+        </div>
+
+        {/* How it works */}
+        <div className="bg-surface-50 rounded-xl p-5 border border-surface-200">
+          <h4 className="text-sm font-medium text-surface-700 mb-4">How it works</h4>
+          <div className="flex items-start gap-3 text-sm">
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">1</span>
+              <span>Add transcripts</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-surface-300 mt-1 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">2</span>
+              <span>Run analysis</span>
+            </div>
+            <ArrowRight className="h-4 w-4 text-surface-300 mt-1 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-surface-600">
+              <span className="w-6 h-6 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center text-xs font-medium">3</span>
+              <span>Get ranked insights</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Guide link */}
         {onGuideClick && (
-          <Button variant="outline" onClick={onGuideClick}>
-            View Guide
-          </Button>
+          <div className="text-center mt-6">
+            <button
+              onClick={onGuideClick}
+              className="text-sm text-surface-500 hover:text-accent-600 transition-colors"
+            >
+              New to customer interviews? Read our guide →
+            </button>
+          </div>
         )}
       </div>
     </div>
