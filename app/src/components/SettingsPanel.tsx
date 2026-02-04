@@ -148,11 +148,41 @@ export function SettingsPanel() {
             <SelectContent>
               {currentConfig.models.map((model) => (
                 <SelectItem key={model.id} value={model.id}>
-                  {model.name}
+                  <div className="flex items-center gap-2">
+                    <span>{model.name}</span>
+                    {model.tier && (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                        model.tier === 'fast' 
+                          ? 'bg-green-50 text-green-700' 
+                          : model.tier === 'balanced'
+                          ? 'bg-blue-50 text-blue-700'
+                          : 'bg-purple-50 text-purple-700'
+                      }`}>
+                        {model.tier === 'fast' ? '⚡ Fast' : model.tier === 'balanced' ? '⚖️ Balanced' : '🧠 Powerful'}
+                      </span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+
+          <div className="flex items-start gap-3 text-xs text-surface-500 p-3 rounded-lg bg-surface-50 border border-surface-200">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-green-50 text-green-700 font-medium">⚡ Fast</span>
+                <span>Quick results, lower cost</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">⚖️ Balanced</span>
+                <span>Good quality/speed tradeoff</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-medium">🧠 Powerful</span>
+                <span>Best quality, slower</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Connection Test */}
