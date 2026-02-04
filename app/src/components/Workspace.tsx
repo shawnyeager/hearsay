@@ -10,7 +10,7 @@ import { SetupSidebar } from './SetupSidebar'
 import { AddTranscriptDialog } from './AddTranscriptDialog'
 import { MethodologyPanel } from './MethodologyPanel'
 import { ModeDiscoveryCard } from './ModeDiscoveryCard'
-import { Button } from '@/components/ui'
+import { Button, Tooltip } from '@/components/ui'
 import { runAnalysis, scoreAnalysis, getRatingFromScore, getRatingColor } from '@/lib/analysis'
 import { scoreColors } from '@/lib/theme'
 import { getPreset } from '@/prompts/presets'
@@ -557,15 +557,47 @@ function ReadyState({ count }: { count: number }) {
   )
 }
 
+// Rubric dimension descriptions for tooltips
+const DIMENSION_INFO: Record<string, { label: string; description: string }> = {
+  themeConcreteness: {
+    label: 'Concrete',
+    description: 'Are themes specific enough to act on? High scores mean themes are buildable features, not vague platitudes.',
+  },
+  normalizationQuality: {
+    label: 'Normalized',
+    description: 'Are similar statements properly grouped? High scores mean no duplicates and consistent categorization.',
+  },
+  quantitativeRigor: {
+    label: 'Rigorous',
+    description: 'Is frequency counting accurate? High scores mean clear "X of N transcripts" format, counting transcripts not mentions.',
+  },
+  rankingValidity: {
+    label: 'Ranked',
+    description: 'Does ranking follow frequency? High scores mean problems ordered by how often they appeared, not opinion.',
+  },
+  attributionAccuracy: {
+    label: 'Attributed',
+    description: 'Can claims be traced to sources? High scores mean every theme links to specific interviewees.',
+  },
+  evidenceGrounding: {
+    label: 'Grounded',
+    description: 'Are quotes accurate and representative? High scores mean verbatim quotes that fairly represent the data.',
+  },
+  synthesisQuality: {
+    label: 'Synthesized',
+    description: 'Do recommendations follow from data? High scores mean suggestions directly map to top-frequency themes.',
+  },
+}
+
 function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
   const dimensions = [
-    { key: 'themeConcreteness', label: 'Concrete', value: score.themeConcreteness },
-    { key: 'normalizationQuality', label: 'Normalized', value: score.normalizationQuality },
-    { key: 'quantitativeRigor', label: 'Rigorous', value: score.quantitativeRigor },
-    { key: 'rankingValidity', label: 'Ranked', value: score.rankingValidity },
-    { key: 'attributionAccuracy', label: 'Attributed', value: score.attributionAccuracy },
-    { key: 'evidenceGrounding', label: 'Grounded', value: score.evidenceGrounding },
-    { key: 'synthesisQuality', label: 'Synthesized', value: score.synthesisQuality },
+    { key: 'themeConcreteness', value: score.themeConcreteness },
+    { key: 'normalizationQuality', value: score.normalizationQuality },
+    { key: 'quantitativeRigor', value: score.quantitativeRigor },
+    { key: 'rankingValidity', value: score.rankingValidity },
+    { key: 'attributionAccuracy', value: score.attributionAccuracy },
+    { key: 'evidenceGrounding', value: score.evidenceGrounding },
+    { key: 'synthesisQuality', value: score.synthesisQuality },
   ]
 
   const getScoreColor = scoreColors.getText
@@ -580,7 +612,7 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
           </div>
           <div>
             <span className="font-display font-semibold text-surface-900">Quality Score</span>
-            <div className="text-xs text-surface-500 mt-0.5">Analysis evaluation</div>
+            <div className="text-xs text-surface-500 mt-0.5">Hover over dimensions to learn more</div>
           </div>
         </div>
         <div className="text-right">
@@ -604,14 +636,19 @@ function ScoreCard({ score }: { score: RubricScore & { commentary: string } }) {
       </div>
 
       <div className="grid grid-cols-7 gap-2 mb-5">
-        {dimensions.map((dim) => (
-          <div key={dim.key} className={`text-center p-2 rounded-lg ${getScoreBg(dim.value)}`}>
-            <div className={`text-lg font-semibold ${getScoreColor(dim.value)}`}>
-              {dim.value}
-            </div>
-            <div className="text-[10px] text-surface-500 truncate mt-0.5">{dim.label}</div>
-          </div>
-        ))}
+        {dimensions.map((dim) => {
+          const info = DIMENSION_INFO[dim.key]
+          return (
+            <Tooltip key={dim.key} content={info.description} position="bottom">
+              <div className={`text-center p-2 rounded-lg cursor-help ${getScoreBg(dim.value)}`}>
+                <div className={`text-lg font-semibold ${getScoreColor(dim.value)}`}>
+                  {dim.value}
+                </div>
+                <div className="text-[10px] text-surface-500 truncate mt-0.5">{info.label}</div>
+              </div>
+            </Tooltip>
+          )
+        })}
       </div>
 
       {score.commentary && (

@@ -24,3 +24,4 @@ export {
   SelectSeparator,
 } from './Select'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './Tabs'
+export { Tooltip } from './Tooltip'
