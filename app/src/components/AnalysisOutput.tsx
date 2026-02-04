@@ -16,6 +16,17 @@ interface Section {
 export function AnalysisOutput({ content, isStreaming }: AnalysisOutputProps) {
   const [collapsedSections, setCollapsedSections] = useState<Set<number>>(new Set())
   const [copiedSection, setCopiedSection] = useState<number | null>(null)
+  const [copiedAll, setCopiedAll] = useState(false)
+
+  const copyAll = async () => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedAll(true)
+      setTimeout(() => setCopiedAll(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
 
   // Parse content into sections based on H2 headers
   const sections = useMemo(() => {
@@ -96,6 +107,26 @@ export function AnalysisOutput({ content, isStreaming }: AnalysisOutputProps) {
 
   return (
     <div className="space-y-3">
+      {/* Copy all button */}
+      <div className="flex justify-end">
+        <button
+          onClick={copyAll}
+          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-surface-500 hover:text-surface-700 hover:bg-surface-100 rounded-lg transition-colors"
+        >
+          {copiedAll ? (
+            <>
+              <Check className="h-3.5 w-3.5 text-green-500" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="h-3.5 w-3.5" />
+              Copy all
+            </>
+          )}
+        </button>
+      </div>
+
       {sections.map((section, index) => {
         const isCollapsed = collapsedSections.has(index)
         const isCopied = copiedSection === index
