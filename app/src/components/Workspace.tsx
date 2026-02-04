@@ -136,6 +136,20 @@ export function Workspace({ loadedAnalysis, onClearLoaded, onGuideClick, trigger
     }
   }, [isRunning, selectedIds.size, hasValidApiKey])
 
+  // Warn before leaving during analysis
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isRunning) {
+        e.preventDefault()
+        e.returnValue = 'Analysis is still running. Are you sure you want to leave?'
+        return e.returnValue
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isRunning])
+
   const handleLoadSamples = useCallback(async () => {
     setIsLoadingSamples(true)
     try {
@@ -578,15 +592,26 @@ function EmptyState({ message, description }: { message: string; description: st
 function ReadyState({ count }: { count: number }) {
   return (
     <div className="h-full flex flex-col items-center justify-center animate-fade-in">
-      <div className="mb-6">
-        <HearsayLogo size="lg" className="w-20 h-20" />
+      <div className="mb-6 relative">
+        <div className="absolute inset-0 bg-accent-500/20 rounded-full blur-2xl animate-pulse" />
+        <HearsayLogo size="lg" className="w-20 h-20 relative" />
       </div>
       <h3 className="font-display text-xl font-semibold text-surface-900 mb-2">
         Ready to analyze
       </h3>
-      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed">
-        {count} transcript{count !== 1 ? 's' : ''} selected. Click "Run Analysis" in the sidebar to start.
+      <p className="text-sm text-surface-500 text-center max-w-sm leading-relaxed mb-4">
+        {count} transcript{count !== 1 ? 's' : ''} selected
       </p>
+      <div className="flex items-center gap-2 text-sm text-surface-600">
+        <span>Click</span>
+        <span className="px-2 py-1 rounded bg-accent-100 text-accent-700 font-medium">
+          Run Analysis
+        </span>
+        <span>or press</span>
+        <kbd className="px-2 py-1 rounded bg-surface-100 border border-surface-200 font-mono text-xs">
+          ⌘↵
+        </kbd>
+      </div>
     </div>
   )
 }
