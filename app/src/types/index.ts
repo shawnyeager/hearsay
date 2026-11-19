@@ -8,7 +8,7 @@ export interface Transcript {
 }
 
 // LLM Provider types
-export type ProviderId = 'maple' | 'openai' | 'openrouter'
+export type ProviderId = 'maple' | 'openai' | 'claude' | 'openrouter'
 
 export interface ProviderConfig {
   id: ProviderId
@@ -80,6 +80,15 @@ export const PROVIDER_DEFAULTS: Record<ProviderId, { name: string; baseUrl: stri
       { id: 'gpt-4o', name: 'GPT-4o', tier: 'balanced' },
       { id: 'gpt-4.1', name: 'GPT-4.1', tier: 'powerful' },
       { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', tier: 'powerful' },
+    ],
+  },
+  claude: {
+    name: 'Claude',
+    baseUrl: 'https://api.anthropic.com/v1',
+    models: [
+      { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5', tier: 'balanced' },
+      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5', tier: 'powerful' },
+      { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5', tier: 'fast' },
     ],
   },
   openrouter: {

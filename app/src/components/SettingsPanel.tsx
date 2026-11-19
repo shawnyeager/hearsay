@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui'
+import { chat } from '@/lib/llm'
 import { PROVIDER_DEFAULTS, type ProviderId } from '@/types'
 
 export function SettingsPanel() {
@@ -41,7 +42,7 @@ export function SettingsPanel() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             {providerIds.map((id) => (
               <ProviderCard
                 key={id}
@@ -80,6 +81,8 @@ export function SettingsPanel() {
                 placeholder={
                   settings.selectedProvider === 'maple'
                     ? 'Maple API key'
+                    : settings.selectedProvider === 'claude'
+                    ? 'sk-ant-...'
                     : settings.selectedProvider === 'openrouter'
                     ? 'sk-or-v1-...'
                     : 'sk-...'
@@ -215,6 +218,7 @@ function ProviderCard({
   const icons: Record<ProviderId, React.ReactNode> = {
     maple: <Shield className="h-4 w-4" />,
     openai: <span className="text-sm font-bold">AI</span>,
+    claude: <span className="text-sm font-bold">C</span>,
     openrouter: <Zap className="h-4 w-4" />,
   }
 
@@ -245,6 +249,7 @@ function ProviderCard({
       <div className="text-xs text-surface-500">
         {id === 'openrouter' && 'Multi-model'}
         {id === 'openai' && 'Direct API'}
+        {id === 'claude' && 'Anthropic'}
         {id === 'maple' && 'Privacy-first'}
       </div>
     </button>
@@ -262,6 +267,11 @@ function ProviderInfo({ providerId }: { providerId: ProviderId }) {
       description: 'Direct access to OpenAI models including GPT-4o and GPT-4 Turbo.',
       link: 'https://platform.openai.com/api-keys',
       linkText: 'Get OpenAI API key',
+    },
+    claude: {
+      description: 'Direct access to Claude. Sonnet 5.5, Opus 5.5, and Haiku 5.5.',
+      link: 'https://platform.claude.com/settings/keys',
+      linkText: 'Get Claude API key',
     },
     openrouter: {
       description: 'Access Claude, GPT-4, Gemini, and more with a single API key.',
@@ -309,29 +319,15 @@ function ConnectionTest() {
         settings.providers[settings.selectedProvider].baseUrl ||
         PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      }
-
-      if (settings.selectedProvider === 'openrouter') {
-        headers['HTTP-Referer'] = window.location.origin
-      }
-
-      const response = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      await chat(
+        {
+          providerId: settings.selectedProvider,
+          apiKey,
+          baseUrl,
           model: settings.selectedModel,
-          messages: [{ role: 'user', content: 'Say "connected" and nothing else.' }],
-          max_tokens: 10,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error.error?.message || `HTTP ${response.status}`)
-      }
+        },
+        [{ role: 'user', content: 'Say "connected" and nothing else.' }]
+      )
 
       setStatus('success')
     } catch (error) {

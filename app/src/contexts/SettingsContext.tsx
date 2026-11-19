@@ -16,6 +16,7 @@ const defaultSettings: Settings = {
   providers: {
     openrouter: { apiKey: '', baseUrl: PROVIDER_DEFAULTS.openrouter.baseUrl },
     openai: { apiKey: '', baseUrl: PROVIDER_DEFAULTS.openai.baseUrl },
+    claude: { apiKey: '', baseUrl: PROVIDER_DEFAULTS.claude.baseUrl },
     maple: { apiKey: '', baseUrl: PROVIDER_DEFAULTS.maple.baseUrl },
   },
   selectedProvider: 'openrouter',
