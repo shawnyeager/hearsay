@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui'
+import { chat } from '@/lib/llm'
 import { PROVIDER_DEFAULTS, type ProviderId } from '@/types'
 
 interface APIKeyPromptProps {
@@ -50,6 +51,10 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
       description: 'Direct OpenAI access',
       link: 'https://platform.openai.com/api-keys',
     },
+    claude: {
+      description: 'Direct Claude access',
+      link: 'https://platform.claude.com/settings/keys',
+    },
     maple: {
       description: 'Local, privacy-focused',
       link: 'https://trymaple.ai/downloads',
@@ -72,29 +77,15 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
         settings.providers[settings.selectedProvider].baseUrl ||
         PROVIDER_DEFAULTS[settings.selectedProvider].baseUrl
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      }
-
-      if (settings.selectedProvider === 'openrouter') {
-        headers['HTTP-Referer'] = window.location.origin
-      }
-
-      const response = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      await chat(
+        {
+          providerId: settings.selectedProvider,
+          apiKey,
+          baseUrl,
           model: settings.selectedModel,
-          messages: [{ role: 'user', content: 'Say "connected" and nothing else.' }],
-          max_tokens: 10,
-        }),
-      })
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}))
-        throw new Error(error.error?.message || `HTTP ${response.status}`)
-      }
+        },
+        [{ role: 'user', content: 'Say "connected" and nothing else.' }]
+      )
 
       setTestStatus('success')
     } catch (error) {
@@ -124,7 +115,7 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
 
         <div className="space-y-5 pt-2">
           {/* Provider Selection - Compact */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {providerIds.map((id) => (
               <button
                 key={id}
@@ -182,7 +173,9 @@ export function APIKeyPrompt({ open, onOpenChange, onSuccess }: APIKeyPromptProp
                   })
                 }
                 placeholder={
-                  settings.selectedProvider === 'openrouter'
+                  settings.selectedProvider === 'claude'
+                    ? 'sk-ant-...'
+                    : settings.selectedProvider === 'openrouter'
                     ? 'sk-or-v1-...'
                     : 'sk-...'
                 }
