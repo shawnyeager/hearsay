@@ -1,10 +1,20 @@
 # Usage Guide
 
-## Basic Workflow
+Install the Hearsay skill in Claude or ChatGPT first. The install steps are in the README, under "Use the skill."
 
-1. Place interview transcripts in a folder (e.g., `./transcripts/`)
-2. Point Claude to the folder: "Analyze the interviews in ./transcripts/"
-3. Claude reads all transcripts, applies the methodology, produces the deliverable
+## Run an analysis
+
+1. Place interview transcripts in a folder (for example, `./transcripts/`), or attach the files to the chat.
+2. Ask Claude or ChatGPT: "Analyze the interviews in ./transcripts/"
+3. The skill reads every transcript, applies the methodology, and produces the deliverable.
+
+With a coding agent that has the skill installed, you can name the variant and the output file:
+
+```
+Analyze the interviews in ./transcripts/ using the quote-heavy variant.
+Write the report to ./output/analysis.md.
+Score it with the rubric and revise until the score is at least 32.
+```
 
 ## Transcript Preparation
 
@@ -26,23 +36,6 @@ Plain text or markdown. Include:
 - Interviewee's own words (not summarized)
 - 15-60 minutes of content typical
 
-## Invoking Analysis
-
-### Standard analysis:
-```
-Analyze the interviews in ./transcripts/ using the methodology in PROMPT_core.md
-```
-
-### Quote-heavy variant (for stakeholder presentations):
-```
-Analyze the interviews in ./transcripts/ using PROMPT_with_quotes.md
-```
-
-### With explicit output location:
-```
-Analyze ./transcripts/ and write the report to ./output/analysis.md
-```
-
 ## Quality Control
 
 After receiving the analysis:
@@ -55,7 +48,7 @@ After receiving the analysis:
 ## Iteration
 
 If quality is low:
-- Ask Claude to re-analyze with specific corrections
+- Ask Claude or ChatGPT to re-analyze with specific corrections
 - "The themes are too abstract—make them more concrete and product-specific"
 - "Quote #3 under Problem #2 seems out of context—replace with a better example"
 - "Combine 'slow performance' and 'takes too long' into one theme and recount"
@@ -67,3 +60,7 @@ If quality is low:
 - **Run twice and compare.** If rankings differ significantly, themes may need refinement.
 - **Long tail matters.** Single-mention items may be early signals worth noting.
 - **Consistent interviews = better analysis.** Use `INTERVIEW_script.md` to ensure all transcripts cover the same question arc (context → stack → problems → magic wand). This makes cross-transcript pattern detection more reliable.
+
+## Browser app
+
+The app in `app/` runs the same standard and quote-heavy methodologies in a browser, plus Quick Scan and Deep Dive. Install and start it from the README. Use the skill when Claude or ChatGPT can read the transcripts directly.

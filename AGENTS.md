@@ -4,20 +4,31 @@ Guidance for LLM-based coding agents working in this repository.
 
 ## What This Repo Is
 
-LLM prompts and methodology for turning customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
+A skill for Claude and ChatGPT that turns customer interview transcripts into product roadmap recommendations. Point an agent at a folder of transcripts and get: **What should we build next, and why?**
 
-This is a **prompt-only repository**—no source code, no builds, no tests. The deliverables are markdown files containing methodology, templates, and rubrics that guide LLM analysis.
+The user-facing entry point is [`skills/hearsay`](skills/hearsay). The markdown methodology at the repo root is the source of truth, and the skill ships copies in `skills/hearsay/references/`. A browser app in `app/` is a secondary interface.
 
 ---
 
 ## Build / Lint / Test Commands
 
-**None.** This repository contains only markdown files. There is no code to compile, lint, or test.
+The skill and methodology files have no build.
 
-Quality assurance is manual:
+The app:
+
+```bash
+cd app
+npm install
+npm run dev
+npm run lint
+npx tsc -b
+```
+
+Quality assurance for the methodology is manual:
 - Proofread markdown for clarity and consistency
 - Validate that methodology files are internally consistent
-- Test prompts by running them against sample transcripts
+- Keep `skills/hearsay/references/` identical to the root methodology files
+- Test the skill by running it against sample transcripts
 
 ---
 
@@ -41,6 +52,8 @@ The agent should:
 
 | File | Purpose |
 |------|---------|
+| `skills/hearsay/SKILL.md` | Skill entry point for Claude and ChatGPT |
+| `skills/hearsay/references/` | Copies of the methodology, template, and rubric the skill reads |
 | `PROMPT_core.md` | Core methodology: ingest → extract → normalize → count → rank → synthesize |
 | `PROMPT_with_quotes.md` | Quote-heavy variant for stakeholder presentations |
 | `TEMPLATE_output.md` | Expected output structure with format specs |
@@ -188,9 +201,10 @@ Score 1-5 per dimension. Target: 32+/35.
 When modifying methodology files:
 
 - Keep `PROMPT_core.md` and `PROMPT_with_quotes.md` in sync on shared methodology
+- After any edit to `PROMPT_core.md`, `PROMPT_with_quotes.md`, `TEMPLATE_output.md`, or `RUBRIC_scoring.md`, copy that file onto its twin in `skills/hearsay/references/` (`core.md`, `with-quotes.md`, `template.md`, `rubric.md`)
 - Update `TEMPLATE_output.md` if output format changes
 - Update `RUBRIC_scoring.md` if quality criteria change
-- Cross-reference changes in `EXAMPLE_usage.md`
+- Cross-reference changes in `EXAMPLE_usage.md` and `README.md`
 - This file (`AGENTS.md`) should reflect any structural changes
 
 ---
